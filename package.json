@@ -7,10 +7,24 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "pnpm --recursive --parallel --if-present run dev",
-    "build": "pnpm --recursive --if-present run build",
-    "test": "pnpm --recursive --if-present run test",
-    "lint": "pnpm --recursive --if-present run lint",
-    "clean": "pnpm --recursive --if-present run clean"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean",
+    "db:generate": "pnpm --filter @kidstoys/db run db:generate",
+    "db:migrate": "pnpm --filter @kidstoys/db run db:migrate",
+    "db:push": "pnpm --filter @kidstoys/db run db:push",
+    "db:seed": "pnpm --filter @kidstoys/db run db:seed",
+    "db:studio": "pnpm --filter @kidstoys/db run db:studio"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "globals": "^17.13.0",
+    "turbo": "^2.11.10",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.72.1"
   }
 }
