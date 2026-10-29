@@ -1,5 +1,5 @@
 import { and, asc, count, desc, eq, like, sql, type SQL } from "drizzle-orm";
-import { categories, db, products } from "@kidstoys/db";
+import { categories, db, orderItems, products } from "@kidstoys/db";
 
 const productColumns = {
   id: products.id,
@@ -182,4 +182,13 @@ export async function updateProduct(
 
 export async function deleteProduct(id: number): Promise<void> {
   await db.delete(products).where(eq(products.id, id));
+}
+
+/** How many order lines reference this product. */
+export async function countOrderItemsForProduct(id: number): Promise<number> {
+  const rows = await db
+    .select({ total: count() })
+    .from(orderItems)
+    .where(eq(orderItems.productId, id));
+  return rows[0]?.total ?? 0;
 }

@@ -3,17 +3,17 @@ import { ApiError } from "../../shared/errors";
 import { uniqueSlug } from "../../shared/slug";
 import { toCategoryDTO } from "./mappers";
 import {
+  categoryNameExists,
   categorySlugExists,
   countProductsInCategory,
   deleteCategory,
   findCategoryById,
-  findCategoryBySlug,
   insertCategory,
   listActiveCategories,
   listAllCategories,
   updateCategory,
 } from "./repository";
-import { assertCategoryCanBeDeleted } from "./rules";
+import { assertCategoryCanBeDeleted, assertCategoryNameIsUnique } from "./rules";
 
 export async function listPublicCategories(): Promise<CategoryDTO[]> {
   const rows = await listActiveCategories();
@@ -32,6 +32,8 @@ export async function createCategory(input: {
   sortOrder?: number;
   isActive?: boolean;
 }): Promise<CategoryDTO> {
+  assertCategoryNameIsUnique(await categoryNameExists(input.name));
+
   const slug = await uniqueSlug(input.name, categorySlugExists);
 
   const created = await insertCategory({
@@ -62,7 +64,10 @@ export async function updateCategoryById(
   }
 
   const updates: Parameters<typeof updateCategory>[1] = {};
-  if (input.name !== undefined) updates.name = input.name;
+  if (input.name !== undefined) {
+    assertCategoryNameIsUnique(await categoryNameExists(input.name));
+    updates.name = input.name;
+  }
   if (input.description !== undefined) updates.description = input.description;
   if (input.imageUrl !== undefined) updates.imageUrl = input.imageUrl;
   if (input.sortOrder !== undefined) updates.sortOrder = input.sortOrder;
@@ -83,5 +88,3 @@ export async function removeCategory(id: number): Promise<void> {
 
   await deleteCategory(id);
 }
-
-export { findCategoryBySlug };

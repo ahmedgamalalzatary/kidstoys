@@ -1,11 +1,9 @@
 import type { Response } from "express";
-import type { LoginInput, ProfileInput, RegisterInput, UserDTO } from "@kidstoys/shared";
-import { loginSchema, profileSchema, registerSchema } from "@kidstoys/shared";
+import type { LoginInput, RegisterInput, UserDTO } from "@kidstoys/shared";
 import { ApiError } from "../../shared/errors";
 import { toUserDTO } from "../../shared/mappers";
 import { hashPassword, verifyPassword } from "../../shared/password";
 import { clearSessionCookie, setSessionCookie, signSession } from "../../shared/session";
-import { parseBody } from "../../shared/validation";
 import { findUserById, findUserByEmail, insertUser, updateUser } from "./repository";
 import { assertPasswordAllowed, normalizeEmail } from "./rules";
 
@@ -61,7 +59,15 @@ export async function login(input: LoginInput): Promise<UserDTO> {
 
 export async function updateProfile(
   userId: number,
-  input: ProfileInput,
+  input: {
+    name?: string;
+    email?: string;
+    phone?: string | null;
+    city?: string | null;
+    address?: string | null;
+    currentPassword?: string;
+    newPassword?: string;
+  },
 ): Promise<UserDTO> {
   const updates: Parameters<typeof updateUser>[1] = {};
 
@@ -111,5 +117,3 @@ export async function startSession(res: Response, user: UserDTO): Promise<void> 
 export function endSession(res: Response): void {
   clearSessionCookie(res);
 }
-
-export { loginSchema, profileSchema, registerSchema, parseBody };

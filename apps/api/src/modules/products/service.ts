@@ -3,6 +3,8 @@ import { ApiError } from "../../shared/errors";
 import { uniqueSlug } from "../../shared/slug";
 import { toProductDTO } from "./mappers";
 import {
+  countOrderItemsForProduct,
+  deleteProduct,
   findProductById,
   findProductBySlug,
   insertProduct,
@@ -11,15 +13,14 @@ import {
   updateProduct,
   type ProductFilters,
 } from "./repository";
-import { assertStockIsNotNegative } from "./rules";
+import { assertProductCanBeDeleted, assertStockIsNotNegative } from "./rules";
 
 export async function listCatalogProducts(options: {
   filters: ProductFilters;
   sort: "newest" | "price_asc" | "price_desc" | "name_asc";
   page: number;
   pageSize: number;
-}): Promise<PaginatedDTO<ProductDTO>> {
-  const { rows, total } = await listProducts(
+}): Promise<PaginatedDTO<ProductDTO>> {  const { rows, total } = await listProducts(
     options.filters,
     options.sort,
     options.page,
@@ -41,6 +42,18 @@ export async function getProduct(slug: string): Promise<ProductDTO> {
     throw ApiError.notFound("That product is no longer available");
   }
   return toProductDTO(row);
+}
+
+export async function removeProduct(id: number): Promise<void> {
+  const existing = await findProductById(id);
+  if (!existing) {
+    throw ApiError.notFound("That product no longer exists");
+  }
+
+  const orderCount = await countOrderItemsForProduct(id);
+  assertProductCanBeDeleted(orderCount);
+
+  await deleteProduct(id);
 }
 
 export async function createProduct(input: ProductInput): Promise<ProductDTO> {

@@ -47,6 +47,11 @@ export async function categorySlugExists(slug: string): Promise<boolean> {
   return row !== null;
 }
 
+export async function categoryNameExists(name: string): Promise<boolean> {
+  const [row] = await db.select({ id: categories.id }).from(categories).where(eq(categories.name, name)).limit(1);
+  return row !== undefined;
+}
+
 export async function insertCategory(values: {
   name: string;
   slug: string;

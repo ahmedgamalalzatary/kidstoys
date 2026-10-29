@@ -18,7 +18,8 @@
     "db:seed": "tsx src/seed.ts",
     "db:studio": "drizzle-kit studio",
     "lint": "eslint .",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "test:coverage": "vitest run --coverage --passWithNoTests"
   },
   "dependencies": {
     "@kidstoys/shared": "workspace:*",
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
+    "@vitest/coverage-v8": "5.0.5",
     "drizzle-kit": "^0.31.11",
     "tsx": "^4.23.15",
     "typescript": "~5.9.3",

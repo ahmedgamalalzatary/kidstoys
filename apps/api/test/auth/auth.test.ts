@@ -88,6 +88,33 @@ describe("GET /api/auth/me", () => {
     expect(response.status).toBe(401);
   });
 
+  it("returns 401 for a tampered session cookie", async () => {
+    const response = await request(createApp())
+      .get("/api/auth/me")
+      .set("Cookie", "kidstoys_session=not-a-real-token");
+
+    expect(response.status).toBe(401);
+  });
+
+  it("returns 401 when the account behind the session is gone", async () => {
+    const { db, users } = await import("@kidstoys/db");
+    const { eq } = await import("drizzle-orm");
+
+    const app = createApp();
+    const agent = request.agent(app);
+    await agent.post("/api/auth/register").send({
+      name: "Sara",
+      email: "sara@example.com",
+      password: "supersecret",
+    });
+
+    await db.delete(users).where(eq(users.email, "sara@example.com"));
+
+    const response = await agent.get("/api/auth/me");
+
+    expect(response.status).toBe(401);
+  });
+
   it("returns the signed-in user", async () => {
     await createUser({ email: "sara@example.com", password: "supersecret" });
     const agent = request.agent(createApp());

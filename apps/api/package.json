@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@kidstoys/db": "workspace:*",
@@ -31,6 +32,7 @@
     "@types/express": "^5.0.6",
     "@types/node": "^26.6.6",
     "@types/supertest": "^7.2.1",
+    "@vitest/coverage-v8": "5.0.5",
     "supertest": "^7.3.1",
     "tsx": "^4.23.15",
     "typescript": "~5.9.3",

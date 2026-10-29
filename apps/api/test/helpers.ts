@@ -1,4 +1,6 @@
 import bcrypt from "bcryptjs";
+import request from "supertest";
+import type { Express } from "express";
 import { sql } from "drizzle-orm";
 import {
   cartItems,
@@ -104,4 +106,59 @@ export async function createProduct(options: {
 
   if (!row) throw new Error("Product was not created");
   return { id: row.id, name, slug: options.slug ?? slugify(name) };
+}
+
+/** Creates a customer and returns a signed-in agent for them. */
+export async function loginAsCustomer(app: Express) {
+  const user = await createUser({ role: "client" });
+  const agent = request.agent(app);
+  await agent.post("/api/auth/login").send({ email: user.email, password: user.password });
+  return { agent, user };
+}
+
+/** Creates an admin and returns a signed-in agent for them. */
+export async function loginAsAdmin(app: Express) {
+  const user = await createUser({ role: "admin" });
+  const agent = request.agent(app);
+  await agent.post("/api/auth/login").send({ email: user.email, password: user.password });
+  return { agent, user };
+}
+
+/** Creates an order that contains the given product, so the product is "in an order". */
+export async function createOrderWithProduct(options: {
+  userId: number;
+  productId: number;
+  quantity?: number;
+}): Promise<{ id: number; orderNumber: string }> {
+  const [order] = await db
+    .insert(orders)
+    .values({
+      orderNumber: `KT-2026-${Math.floor(Math.random() * 9000 + 1000)}`,
+      userId: options.userId,
+      status: "delivered",
+      paymentMethod: "cod",
+      paymentStatus: "paid",
+      subtotalCents: 1000,
+      shippingCents: 0,
+      totalCents: 1000,
+      customerName: "Test User",
+      customerEmail: "test@example.com",
+      customerPhone: "123456",
+      city: "Kuwait",
+      shippingAddress: "Some street 1",
+    })
+    .$returningId();
+
+  if (!order) throw new Error("Order was not created");
+
+  await db.insert(orderItems).values({
+    orderId: order.id,
+    productId: options.productId,
+    productName: "Wooden Train",
+    productSlug: "wooden-train",
+    unitPriceCents: 1000,
+    quantity: options.quantity ?? 1,
+  });
+
+  return { id: order.id, orderNumber: `KT-2026-${order.id}` };
 }

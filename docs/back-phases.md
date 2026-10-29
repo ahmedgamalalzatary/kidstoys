@@ -14,6 +14,21 @@ Rules of the road:
   Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 missing, 409 conflict, 500 unexpected.
 - Role checks live in the API, never in the UI.
 
+### Tracking coverage
+
+`pnpm test:coverage` runs the suite with a V8 coverage report (text + HTML in `coverage/`).
+The API package enforces thresholds, so coverage cannot silently regress:
+
+| metric | threshold |
+|---|---|
+| statements | 88% |
+| branches | 72% |
+| functions | 95% |
+| lines | 88% |
+
+Raise them as the phases land. Use the report to find the behaviour nobody tested yet — an
+uncovered route, service or rule is the next test to write.
+
 ## Structure
 
 The API is organised by feature. Each feature is a module under `apps/api/src/modules/`, and the
@@ -83,15 +98,15 @@ repository, and only repositories touch the database.
 
 ## B3 — Catalog management (admin)
 
-- [ ] `GET /api/admin/categories` → all categories, including inactive, with product counts.
-- [ ] `POST /api/admin/categories` → creates with a generated unique slug.
-- [ ] `PATCH /api/admin/categories/:id` → updates fields; `409` on duplicate name.
-- [ ] `DELETE /api/admin/categories/:id` → `409` when products still reference it.
-- [ ] `GET /api/admin/products` → list with `q`, `category`, `includeInactive`, `lowStock`, paging.
-- [ ] `POST /api/admin/products` → creates with slug generation and image URL list.
-- [ ] `PATCH /api/admin/products/:id` → updates fields and stock.
-- [ ] `DELETE /api/admin/products/:id` → `409` when the product appears in an order; otherwise deletes.
-- [ ] Every endpoint in this phase returns `401` without a session and `403` for a customer.
+- [x] `GET /api/admin/categories` → all categories, including inactive, with product counts.
+- [x] `POST /api/admin/categories` → creates with a generated unique slug.
+- [x] `PATCH /api/admin/categories/:id` → updates fields; `409` on duplicate name.
+- [x] `DELETE /api/admin/categories/:id` → `409` when products still reference it.
+- [x] `GET /api/admin/products` → list with `q`, `category`, `includeInactive`, `lowStock`, paging.
+- [x] `POST /api/admin/products` → creates with slug generation and image URL list.
+- [x] `PATCH /api/admin/products/:id` → updates fields and stock.
+- [x] `DELETE /api/admin/products/:id` → `409` when the product appears in an order; otherwise deletes.
+- [x] Every endpoint in this phase returns `401` without a session and `403` for a customer.
 
 ## B4 — Cart
 
