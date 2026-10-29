@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { adminProductQuerySchema, productQuerySchema, productSchema } from "@kidstoys/shared";
+import { adminProductQuerySchema, productPatchSchema, productQuerySchema, productSchema } from "@kidstoys/shared";
 import { requireRole } from "../../shared/middleware/auth";
-import { parseBody, parseQuery } from "../../shared/validation";
+import { parseBody, parseId, parseQuery } from "../../shared/validation";
 import {
   createProduct,
   getProduct,
@@ -56,12 +56,12 @@ adminRouter.post("/products", async (req, res) => {
 });
 
 adminRouter.patch("/products/:id", async (req, res) => {
-  const input = parseBody(productSchema.partial(), req.body);
-  res.status(200).json(await updateProductById(Number(req.params.id), input));
+  const input = parseBody(productPatchSchema, req.body);
+  res.status(200).json(await updateProductById(parseId(req.params.id), input));
 });
 
 adminRouter.delete("/products/:id", async (req, res) => {
-  await removeProduct(Number(req.params.id));
+  await removeProduct(parseId(req.params.id));
   res.status(204).send();
 });
 

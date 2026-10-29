@@ -92,6 +92,17 @@ describe("PATCH /api/admin/categories/:id", () => {
     expect(response.body).toMatchObject({ id: category.id, name: "Games" });
   });
 
+  it("keeps the category when the body is empty", async () => {
+    const app = createApp();
+    const { agent } = await loginAsAdmin(app);
+    const toys = await createCategory({ name: "Toys" });
+
+    const response = await agent.patch(`/api/admin/categories/${toys.id}`).send({});
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ id: toys.id, name: "Toys" });
+  });
+
   it("can hide a category without deleting it", async () => {
     const app = createApp();
     const { agent } = await loginAsAdmin(app);
@@ -105,6 +116,15 @@ describe("PATCH /api/admin/categories/:id", () => {
     expect(response.body.isActive).toBe(false);
   });
 
+  it("rejects an id that is not a number", async () => {
+    const app = createApp();
+    const { agent } = await loginAsAdmin(app);
+
+    const response = await agent.patch("/api/admin/categories/abc").send({ name: "Games" });
+
+    expect(response.status).toBe(400);
+  });
+
   it("returns 404 for an unknown category", async () => {
     const app = createApp();
     const { agent } = await loginAsAdmin(app);
@@ -112,6 +132,17 @@ describe("PATCH /api/admin/categories/:id", () => {
     const response = await agent.patch("/api/admin/categories/9999").send({ name: "Games" });
 
     expect(response.status).toBe(404);
+  });
+
+  it("accepts a patch that keeps the same name", async () => {
+    const app = createApp();
+    const { agent } = await loginAsAdmin(app);
+    const toys = await createCategory({ name: "Toys" });
+
+    const response = await agent.patch(`/api/admin/categories/${toys.id}`).send({ name: "Toys" });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ id: toys.id, name: "Toys" });
   });
 
   it("refuses a name that another category already uses", async () => {

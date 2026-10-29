@@ -21,7 +21,7 @@ export async function addToCart(
   requestedQuantity: number,
 ): Promise<CartDTO> {
   const product = await findProduct(productId);
-  if (!product) {
+  if (!product || !product.isActive) {
     throw ApiError.notFound("That product no longer exists");
   }
 
@@ -67,14 +67,14 @@ export async function removeFromCart(userId: number, productId: number): Promise
   return getCart(userId);
 }
 
-/** Folds a guest cart into the signed-in cart. Unknown or sold-out products are skipped. */
+/** Folds a guest cart into the signed-in cart. Unknown, withdrawn or sold-out products are skipped. */
 export async function mergeCart(
   userId: number,
   items: { productId: number; quantity: number }[],
 ): Promise<CartDTO> {
   for (const item of items) {
     const product = await findProduct(item.productId);
-    if (!product || product.stock <= 0) {
+    if (!product || !product.isActive || product.stock <= 0) {
       continue;
     }
 

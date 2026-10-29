@@ -65,7 +65,7 @@ export async function updateCategoryById(
 
   const updates: Parameters<typeof updateCategory>[1] = {};
   if (input.name !== undefined) {
-    assertCategoryNameIsUnique(await categoryNameExists(input.name));
+    assertCategoryNameIsUnique(await categoryNameExists(input.name, id));
     updates.name = input.name;
   }
   if (input.description !== undefined) updates.description = input.description;

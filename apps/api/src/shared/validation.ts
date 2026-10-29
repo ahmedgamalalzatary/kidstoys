@@ -26,3 +26,12 @@ export function parseBody<T>(schema: ZodType<T>, body: unknown): T {
 export function parseQuery<T>(schema: ZodType<T>, query: unknown): T {
   return parseBody(schema, query);
 }
+
+/** Parses a path id, throwing a 400 when it is not a positive whole number. */
+export function parseId(value: unknown): number {
+  const id = Number(value);
+  if (!Number.isInteger(id) || id <= 0) {
+    throw ApiError.badRequest("That id is not valid");
+  }
+  return id;
+}

@@ -92,6 +92,21 @@ describe("POST /api/cart/items", () => {
     expect(response.status).toBe(409);
   });
 
+  it("rejects a product that is no longer available", async () => {
+    const app = createApp();
+    const { agent } = await loginAsCustomer(app);
+    const toys = await createCategory({ name: "Toys" });
+    const product = await createProduct({
+      name: "Retired Train",
+      categoryId: toys.id,
+      isActive: false,
+    });
+
+    const response = await agent.post("/api/cart/items").send({ productId: product.id, quantity: 1 });
+
+    expect(response.status).toBe(404);
+  });
+
   it("rejects a product that does not exist", async () => {
     const app = createApp();
     const { agent } = await loginAsCustomer(app);
@@ -165,6 +180,15 @@ describe("PATCH /api/cart/items/:productId", () => {
     expect(response.body.items).toHaveLength(0);
   });
 
+  it("rejects a product id that is not a number", async () => {
+    const app = createApp();
+    const { agent } = await loginAsCustomer(app);
+
+    const response = await agent.patch("/api/cart/items/abc").send({ quantity: 2 });
+
+    expect(response.status).toBe(400);
+  });
+
   it("returns 404 for a product that is not in the cart", async () => {
     const app = createApp();
     const { agent } = await loginAsCustomer(app);
@@ -231,6 +255,24 @@ describe("POST /api/cart/merge", () => {
       .post("/api/cart/merge")
       .send({ items: [{ productId: product.id, quantity: 1 }] });
 
+    expect(response.body.items).toHaveLength(0);
+  });
+
+  it("ignores products that are no longer available", async () => {
+    const app = createApp();
+    const { agent } = await loginAsCustomer(app);
+    const toys = await createCategory({ name: "Toys" });
+    const product = await createProduct({
+      name: "Retired Train",
+      categoryId: toys.id,
+      isActive: false,
+    });
+
+    const response = await agent
+      .post("/api/cart/merge")
+      .send({ items: [{ productId: product.id, quantity: 1 }] });
+
+    expect(response.status).toBe(200);
     expect(response.body.items).toHaveLength(0);
   });
 

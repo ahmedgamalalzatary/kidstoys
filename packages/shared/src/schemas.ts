@@ -50,21 +50,32 @@ export const categorySchema = z.object({
   isActive: booleanish.optional(),
 });
 
-export const productSchema = z.object({
+const productShape = {
   name: z.string().trim().min(1, "Name is required").max(200),
   sku: z.string().trim().max(60).optional().nullable(),
   shortDescription: z.string().trim().max(255).optional().nullable(),
-  description: z.string().trim().max(5000).optional().default(""),
+  description: z.string().trim().max(5000).optional(),
   priceCents: z.coerce.number().int().min(0, "Price cannot be negative").max(100_000_000),
   compareAtCents: z.coerce.number().int().min(0).max(100_000_000).optional().nullable(),
   categoryId: z.coerce.number().int().positive("Choose a category"),
-  images: z.array(z.string().trim().url("Enter a valid image URL")).max(8).optional().default([]),
+  images: z.array(z.string().trim().url("Enter a valid image URL")).max(8).optional(),
   stock: z.coerce.number().int().min(0, "Stock cannot be negative").max(1_000_000),
-  minStock: z.coerce.number().int().min(0).max(100_000).optional().default(5),
-  isActive: booleanish.optional().default(true),
+  minStock: z.coerce.number().int().min(0).max(100_000).optional(),
+  isActive: booleanish.optional(),
   ageMin: z.coerce.number().int().min(0).max(21).optional().nullable(),
   ageMax: z.coerce.number().int().min(0).max(21).optional().nullable(),
+};
+
+export const productSchema = z.object({
+  ...productShape,
+  description: productShape.description.default(""),
+  images: productShape.images.default([]),
+  minStock: productShape.minStock.default(5),
+  isActive: productShape.isActive.default(true),
 });
+
+/** A patch carries only the fields the admin sends: the create defaults stay out of it. */
+export const productPatchSchema = z.object(productShape).partial();
 
 export const cartAddSchema = z.object({
   productId: z.coerce.number().int().positive(),
@@ -157,6 +168,7 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export type ProfileInput = z.infer<typeof profileSchema>;
 export type CategoryInput = z.infer<typeof categorySchema>;
 export type ProductInput = z.infer<typeof productSchema>;
+export type ProductPatchInput = z.infer<typeof productPatchSchema>;
 export type CartAddInput = z.infer<typeof cartAddSchema>;
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 export type SupplierInput = z.infer<typeof supplierSchema>;

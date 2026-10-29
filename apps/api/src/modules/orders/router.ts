@@ -6,7 +6,7 @@ import { getCustomerOrder, listCustomerOrders, placeOrder } from "./service";
 
 const router = Router();
 
-router.use(requireAuth);
+router.use("/orders", requireAuth);
 
 router.get("/orders", async (req, res) => {
   res.status(200).json(await listCustomerOrders(req.user!.id));

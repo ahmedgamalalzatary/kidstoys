@@ -1,12 +1,12 @@
 import { Router } from "express";
 import { cartAddSchema, cartMergeSchema, cartQuantitySchema } from "@kidstoys/shared";
 import { requireAuth } from "../../shared/middleware/auth";
-import { parseBody } from "../../shared/validation";
+import { parseBody, parseId } from "../../shared/validation";
 import { addToCart, getCart, mergeCart, removeFromCart, setCartQuantity } from "./service";
 
 const router = Router();
 
-router.use(requireAuth);
+router.use("/cart", requireAuth);
 
 router.get("/cart", async (req, res) => {
   res.status(200).json(await getCart(req.user!.id));
@@ -19,11 +19,15 @@ router.post("/cart/items", async (req, res) => {
 
 router.patch("/cart/items/:productId", async (req, res) => {
   const input = parseBody(cartQuantitySchema, req.body);
-  res.status(200).json(await setCartQuantity(req.user!.id, Number(req.params.productId), input.quantity));
+  res
+    .status(200)
+    .json(await setCartQuantity(req.user!.id, parseId(req.params.productId), input.quantity));
 });
 
 router.delete("/cart/items/:productId", async (req, res) => {
-  res.status(200).json(await removeFromCart(req.user!.id, Number(req.params.productId)));
+  res
+    .status(200)
+    .json(await removeFromCart(req.user!.id, parseId(req.params.productId)));
 });
 
 router.post("/cart/merge", async (req, res) => {

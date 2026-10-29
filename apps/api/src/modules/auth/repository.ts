@@ -41,7 +41,9 @@ export async function updateUser(
     address: string | null;
   }>,
 ): Promise<UserRow> {
-  await db.update(users).set(values).where(eq(users.id, id));
+  if (Object.keys(values).length > 0) {
+    await db.update(users).set(values).where(eq(users.id, id));
+  }
   const updated = await findUserById(id);
   if (!updated) {
     throw new Error("User was not found");

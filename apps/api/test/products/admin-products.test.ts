@@ -147,6 +147,33 @@ describe("PATCH /api/admin/products/:id", () => {
     expect(response.body).toMatchObject({ stock: 30, priceCents: 2500 });
   });
 
+  it("keeps the product when the body is empty", async () => {
+    const app = createApp();
+    const { agent } = await loginAsAdmin(app);
+    const toys = await createCategory({ name: "Toys" });
+    const product = await createProduct({ name: "Wooden Train", categoryId: toys.id });
+
+    const response = await agent.patch(`/api/admin/products/${product.id}`).send({});
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      id: product.id,
+      name: "Wooden Train",
+      priceCents: 1000,
+      stock: 10,
+      description: "A lovely toy",
+    });
+  });
+
+  it("rejects an id that is not a number", async () => {
+    const app = createApp();
+    const { agent } = await loginAsAdmin(app);
+
+    const response = await agent.patch("/api/admin/products/abc").send({ stock: 30 });
+
+    expect(response.status).toBe(400);
+  });
+
   it("returns 404 for an unknown product", async () => {
     const app = createApp();
     const { agent } = await loginAsAdmin(app);

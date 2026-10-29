@@ -14,6 +14,16 @@ describe("PATCH /api/auth/me", () => {
     expect(response.status).toBe(401);
   });
 
+  it("keeps the profile when the body is empty", async () => {
+    const app = createApp();
+    const { agent } = await loginAsCustomer(app);
+
+    const response = await agent.patch("/api/auth/me").send({});
+
+    expect(response.status).toBe(200);
+    expect(response.body.user).toMatchObject({ email: response.body.user.email });
+  });
+
   it("updates the profile fields", async () => {
     const app = createApp();
     const { agent } = await loginAsCustomer(app);

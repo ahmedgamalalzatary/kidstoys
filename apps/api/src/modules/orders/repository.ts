@@ -15,6 +15,7 @@ export interface CartLine {
   unitPriceCents: number;
   quantity: number;
   stock: number;
+  isActive: boolean;
 }
 
 /** The cart of a customer, with the current product details. */
@@ -27,6 +28,7 @@ export async function listCartLines(executor: Executor, userId: number): Promise
       unitPriceCents: products.priceCents,
       quantity: cartItems.quantity,
       stock: products.stock,
+      isActive: products.isActive,
     })
     .from(cartItems)
     .innerJoin(products, eq(cartItems.productId, products.id))

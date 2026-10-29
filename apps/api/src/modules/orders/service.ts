@@ -40,6 +40,10 @@ export async function placeOrder(
     assertCartIsNotEmpty(lines.length);
 
     for (const line of lines) {
+      if (!line.isActive) {
+        throw ApiError.conflict(`${line.productName} is no longer available`);
+      }
+
       const moved = await decrementStock(tx, line.productId, line.quantity);
       if (!moved) {
         throw ApiError.conflict(`${line.productName} is out of stock`);

@@ -1,4 +1,4 @@
-import type { PaginatedDTO, ProductDTO, ProductInput } from "@kidstoys/shared";
+import type { PaginatedDTO, ProductDTO, ProductInput, ProductPatchInput } from "@kidstoys/shared";
 import { ApiError } from "../../shared/errors";
 import { uniqueSlug } from "../../shared/slug";
 import { toProductDTO } from "./mappers";
@@ -81,7 +81,10 @@ export async function createProduct(input: ProductInput): Promise<ProductDTO> {
   return toProductDTO(created);
 }
 
-export async function updateProductById(id: number, input: Partial<ProductInput>): Promise<ProductDTO> {
+export async function updateProductById(
+  id: number,
+  input: ProductPatchInput,
+): Promise<ProductDTO> {
   const existing = await findProductById(id);
   if (!existing) {
     throw ApiError.notFound("That product no longer exists");

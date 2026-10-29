@@ -172,7 +172,9 @@ export async function updateProduct(
     ageMax: number | null;
   }>,
 ) {
-  await db.update(products).set(values).where(eq(products.id, id));
+  if (Object.keys(values).length > 0) {
+    await db.update(products).set(values).where(eq(products.id, id));
+  }
   const updated = await findProductById(id);
   if (!updated) {
     throw new Error("Product was not found");

@@ -1,4 +1,4 @@
-import { and, asc, count, eq } from "drizzle-orm";
+import { and, asc, count, eq, ne } from "drizzle-orm";
 import { categories, db, products } from "@kidstoys/db";
 
 const categoryColumns = {
@@ -47,8 +47,19 @@ export async function categorySlugExists(slug: string): Promise<boolean> {
   return row !== null;
 }
 
-export async function categoryNameExists(name: string): Promise<boolean> {
-  const [row] = await db.select({ id: categories.id }).from(categories).where(eq(categories.name, name)).limit(1);
+/** True when another category already carries this name. */
+export async function categoryNameExists(name: string, exceptId?: number): Promise<boolean> {
+  const conditions = [eq(categories.name, name)];
+  if (exceptId !== undefined) {
+    conditions.push(ne(categories.id, exceptId));
+  }
+
+  const [row] = await db
+    .select({ id: categories.id })
+    .from(categories)
+    .where(and(...conditions))
+    .limit(1);
+
   return row !== undefined;
 }
 
@@ -82,7 +93,9 @@ export async function updateCategory(
     isActive: boolean;
   }>,
 ) {
-  await db.update(categories).set(values).where(eq(categories.id, id));
+  if (Object.keys(values).length > 0) {
+    await db.update(categories).set(values).where(eq(categories.id, id));
+  }
   const updated = await findCategoryById(id);
   if (!updated) {
     throw new Error("Category was not found");

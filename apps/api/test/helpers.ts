@@ -133,7 +133,7 @@ export async function createOrderWithProduct(options: {
   const [order] = await db
     .insert(orders)
     .values({
-      orderNumber: `KT-2026-${Math.floor(Math.random() * 9000 + 1000)}`,
+      orderNumber: `KT-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000 + 1000)}`,
       userId: options.userId,
       status: "delivered",
       paymentMethod: "cod",
@@ -160,5 +160,5 @@ export async function createOrderWithProduct(options: {
     quantity: options.quantity ?? 1,
   });
 
-  return { id: order.id, orderNumber: `KT-2026-${order.id}` };
+  return { id: order.id, orderNumber: `KT-${new Date().getFullYear()}-${order.id}` };
 }
