@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { ApiError } from "../lib/errors";
+import { ApiError } from "../errors";
 
 export function notFoundHandler(req: Request, res: Response): void {
   res.status(404).json({ error: { message: `No route matches ${req.method} ${req.path}` } });

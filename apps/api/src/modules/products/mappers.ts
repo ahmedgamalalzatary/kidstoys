@@ -1,5 +1,5 @@
-import type { CategoryDTO, ProductDTO } from "@kidstoys/shared";
-import type { categories, products } from "@kidstoys/db";
+import type { ProductDTO } from "@kidstoys/shared";
+import type { products } from "@kidstoys/db";
 
 export type ProductRow = typeof products.$inferSelect & {
   categoryName: string;
@@ -26,23 +26,5 @@ export function toProductDTO(row: ProductRow): ProductDTO {
     ageMin: row.ageMin,
     ageMax: row.ageMax,
     createdAt: row.createdAt.toISOString(),
-  };
-}
-
-export function toCategoryDTO(
-  row: Pick<
-    typeof categories.$inferSelect,
-    "id" | "name" | "slug" | "description" | "imageUrl" | "sortOrder" | "isActive"
-  > & { productCount?: number },
-): CategoryDTO {
-  return {
-    id: row.id,
-    name: row.name,
-    slug: row.slug,
-    description: row.description,
-    imageUrl: row.imageUrl,
-    sortOrder: row.sortOrder,
-    isActive: row.isActive,
-    productCount: row.productCount ?? 0,
   };
 }

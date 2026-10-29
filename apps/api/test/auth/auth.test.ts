@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import request from "supertest";
-import { createApp } from "../src/app";
-import { createUser, resetDatabase } from "./helpers";
+import { createApp } from "../../src/app";
+import { createUser, resetDatabase } from "../helpers";
 
 beforeEach(async () => {
   await resetDatabase();

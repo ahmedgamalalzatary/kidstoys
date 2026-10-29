@@ -2,8 +2,9 @@ import type { NextFunction, Request, Response } from "express";
 import { eq } from "drizzle-orm";
 import { db, users } from "@kidstoys/db";
 import type { Role, UserDTO } from "@kidstoys/shared";
-import { ApiError } from "../lib/errors";
-import { SESSION_COOKIE, verifySession } from "../lib/session";
+import { ApiError } from "../errors";
+import { toUserDTO } from "../mappers";
+import { SESSION_COOKIE, verifySession } from "../session";
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -12,19 +13,6 @@ declare global {
       user?: UserDTO;
     }
   }
-}
-
-export function toUserDTO(row: typeof users.$inferSelect): UserDTO {
-  return {
-    id: row.id,
-    name: row.name,
-    email: row.email,
-    role: row.role,
-    phone: row.phone,
-    city: row.city,
-    address: row.address,
-    createdAt: row.createdAt.toISOString(),
-  };
 }
 
 /** Loads the signed-in user, or null when there is no valid session. */

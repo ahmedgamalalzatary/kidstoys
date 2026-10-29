@@ -6,12 +6,51 @@ The two Next.js apps are paused until these phases are done — see [front-phase
 Rules of the road:
 
 - **TDD for every behaviour.** Write the test, watch it fail, implement the minimum that passes, refactor.
+  No production code for a new behaviour before its test has failed.
 - The suite runs against a disposable `kidstoys_test` MySQL schema, migrated on setup (`apps/api/test/setup.ts`).
 - One commit per phase. A phase is a vertical slice: schema + endpoint + tests, working end to end.
 - Money is always integer cents. Timestamps are UTC.
 - Errors always look like `{ "error": { "message": string, "fields"?: { field: message } } }`.
   Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 missing, 409 conflict, 500 unexpected.
 - Role checks live in the API, never in the UI.
+
+## Structure
+
+The API is organised by feature. Each feature is a module under `apps/api/src/modules/`, and the
+test tree mirrors it under `apps/api/test/`:
+
+```
+apps/api/
+├── src/
+│   ├── app.ts                 app factory: middleware, routers, error handling
+│   ├── server.ts              listens on API_PORT
+│   ├── shared/                cross-cutting plumbing
+│   │   ├── errors.ts          ApiError + status codes
+│   │   ├── validation.ts      zod → 400 with per-field errors
+│   │   ├── password.ts        bcrypt hash/verify
+│   │   ├── session.ts         JWT sign/verify + cookie helpers
+│   │   ├── slug.ts            unique slug generation
+│   │   ├── mappers.ts         shared row → DTO mapping
+│   │   └── middleware/        auth guards, error handler
+│   └── modules/
+│       └── <feature>/
+│           ├── routes.ts      HTTP only: parse input, call the service, respond
+│           ├── service.ts     business logic and orchestration
+│           ├── repository.ts  database access, one function per query
+│           ├── rules.ts       invariants and guards (throws ApiError)
+│           ├── mappers.ts     feature-specific row → DTO
+│           └── index.ts       public surface of the module
+└── test/
+    ├── setup.ts               disposable MySQL schema, migrated on setup
+    ├── helpers.ts             resetDatabase, createUser/Category/Product
+    └── <feature>/             mirrors src/modules/<feature>
+```
+
+Planned modules: `auth`, `categories`, `products`, `cart`, `orders`, `clients`, `suppliers`,
+`purchases`, `overview`, `health`.
+
+Layers never skip: a route may only talk to its own service, a service may only talk to its own
+repository, and only repositories touch the database.
 
 ---
 
