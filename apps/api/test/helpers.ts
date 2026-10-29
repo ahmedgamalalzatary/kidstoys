@@ -12,6 +12,7 @@ import {
   suppliers,
   users,
 } from "@kidstoys/db";
+import { slugify } from "@kidstoys/shared";
 
 const tables = [
   orderItems,
@@ -54,4 +55,53 @@ export async function createUser(options: {
     .$returningId();
 
   return { id: row.id, email, password, role: options.role ?? "client" };
+}
+
+export async function createCategory(options: {
+  name?: string;
+  slug?: string;
+  isActive?: boolean;
+  sortOrder?: number;
+}) {
+  const name = options.name ?? "Toys";
+  const [row] = await db
+    .insert(categories)
+    .values({
+      name,
+      slug: options.slug ?? slugify(name),
+      isActive: options.isActive ?? true,
+      sortOrder: options.sortOrder ?? 0,
+    })
+    .$returningId();
+
+  if (!row) throw new Error("Category was not created");
+  return { id: row.id, name, slug: options.slug ?? slugify(name) };
+}
+
+export async function createProduct(options: {
+  name?: string;
+  slug?: string;
+  categoryId: number;
+  priceCents?: number;
+  stock?: number;
+  isActive?: boolean;
+  minStock?: number;
+}) {
+  const name = options.name ?? "Wooden Train";
+  const [row] = await db
+    .insert(products)
+    .values({
+      name,
+      slug: options.slug ?? slugify(name),
+      description: "A lovely toy",
+      priceCents: options.priceCents ?? 1000,
+      categoryId: options.categoryId,
+      stock: options.stock ?? 10,
+      minStock: options.minStock ?? 5,
+      isActive: options.isActive ?? true,
+    })
+    .$returningId();
+
+  if (!row) throw new Error("Product was not created");
+  return { id: row.id, name, slug: options.slug ?? slugify(name) };
 }

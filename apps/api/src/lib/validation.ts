@@ -21,3 +21,8 @@ export function parseBody<T>(schema: ZodType<T>, body: unknown): T {
   }
   return result.data;
 }
+
+/** Parses and validates a query string, throwing a 400 with field errors when invalid. */
+export function parseQuery<T>(schema: ZodType<T>, query: unknown): T {
+  return parseBody(schema, query);
+}

@@ -4,6 +4,7 @@ import express from "express";
 import { env } from "@kidstoys/db";
 import { errorHandler, notFoundHandler } from "./middleware/error";
 import { authRouter } from "./routes/auth";
+import { catalogRouter } from "./routes/catalog";
 
 export function createApp() {
   const app = express();
@@ -22,6 +23,7 @@ export function createApp() {
   });
 
   app.use("/api/auth", authRouter);
+  app.use("/api", catalogRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
