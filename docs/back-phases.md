@@ -110,13 +110,13 @@ repository, and only repositories touch the database.
 
 ## B4 — Cart
 
-- [ ] `GET /api/cart` → items with line totals, subtotal, shipping, total, item count.
-- [ ] `POST /api/cart/items` → adds or increments a product; `409` when out of stock.
-- [ ] `PATCH /api/cart/items/:productId` → sets the quantity, clamped to available stock.
-- [ ] `DELETE /api/cart/items/:productId` → removes the line.
-- [ ] `POST /api/cart/merge` → merges a guest cart into the signed-in user's cart.
-- [ ] Quantities are always clamped server-side to the product's available stock.
-- [ ] The cart belongs to the user; one cart row per user + product.
+- [x] `GET /api/cart` → items with line totals, subtotal, shipping, total, item count.
+- [x] `POST /api/cart/items` → adds or increments a product; `409` when out of stock.
+- [x] `PATCH /api/cart/items/:productId` → sets the quantity, clamped to available stock.
+- [x] `DELETE /api/cart/items/:productId` → removes the line.
+- [x] `POST /api/cart/merge` → merges a guest cart into the signed-in user's cart.
+- [x] Quantities are always clamped server-side to the product's available stock.
+- [x] The cart belongs to the user; one cart row per user + product.
 
 ## B5 — Checkout and customer orders
 

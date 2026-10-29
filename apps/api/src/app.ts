@@ -4,6 +4,7 @@ import express from "express";
 import { env } from "@kidstoys/db";
 import { errorHandler, notFoundHandler } from "./shared/middleware/error";
 import { authRouter } from "./modules/auth";
+import { cartRouter } from "./modules/cart";
 import { categoriesAdminRouter, categoriesPublicRouter } from "./modules/categories";
 import { healthRouter } from "./modules/health";
 import { productsAdminRouter, productsPublicRouter } from "./modules/products";
@@ -25,6 +26,7 @@ export function createApp() {
   app.use("/api/auth", authRouter);
   app.use("/api", categoriesPublicRouter);
   app.use("/api", productsPublicRouter);
+  app.use("/api", cartRouter);
 
   // Dashboard surface
   app.use("/api/admin", categoriesAdminRouter);
