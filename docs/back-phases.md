@@ -120,13 +120,13 @@ repository, and only repositories touch the database.
 
 ## B5 — Checkout and customer orders
 
-- [ ] `POST /api/orders` → places a cash-on-delivery order in one transaction:
+- [x] `POST /api/orders` → places a cash-on-delivery order in one transaction:
       re-checks stock, creates the order and its item snapshots, decrements stock, clears the cart.
-- [ ] Order numbers are sequential and human readable: `KT-2026-0001`.
-- [ ] The order rejects with `409` when any line exceeds available stock, and nothing is written.
-- [ ] `GET /api/orders` → the customer's own orders, newest first.
-- [ ] `GET /api/orders/:orderNumber` → order detail with items and status.
-- [ ] A customer cannot read another customer's order (`404`).
+- [x] Order numbers are sequential and human readable: `KT-2026-0001`.
+- [x] The order rejects with `409` when any line exceeds available stock, and nothing is written.
+- [x] `GET /api/orders` → the customer's own orders, newest first.
+- [x] `GET /api/orders/:orderNumber` → order detail with items and status.
+- [x] A customer cannot read another customer's order (`404`).
 
 ## B6 — Order management (admin)
 

@@ -1,3 +1,3 @@
-export { cartRouter } from "./routes";
+export { cartRouter } from "./router";
 export * from "./service";
 export * from "./rules";
