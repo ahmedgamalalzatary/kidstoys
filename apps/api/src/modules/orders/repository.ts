@@ -14,6 +14,7 @@ export interface CartLine {
   productName: string;
   productSlug: string;
   unitPriceCents: number;
+  unitCostCents: number;
   quantity: number;
   stock: number;
   isActive: boolean;
@@ -27,6 +28,7 @@ export async function listCartLines(executor: Executor, userId: number): Promise
       productName: products.name,
       productSlug: products.slug,
       unitPriceCents: products.priceCents,
+      unitCostCents: products.buyPriceCents,
       quantity: cartItems.quantity,
       stock: products.stock,
       isActive: products.isActive,

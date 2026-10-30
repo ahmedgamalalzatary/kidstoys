@@ -23,6 +23,7 @@ export function createApp() {
   );
   app.use(express.json());
   app.use(cookieParser());
+  app.use("/uploads", express.static(env.uploadDir));
 
   // Public surface
   app.use("/api", healthRouter);

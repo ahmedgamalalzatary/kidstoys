@@ -99,6 +99,7 @@ export const products = mysqlTable(
     shortDescription: varchar("short_description", { length: 255 }),
     description: text("description").notNull(),
     priceCents: int("price_cents").notNull(),
+    buyPriceCents: int("buy_price_cents").notNull(),
     compareAtCents: int("compare_at_cents"),
     categoryId: int("category_id")
       .notNull()
@@ -107,6 +108,7 @@ export const products = mysqlTable(
       .$type<string[]>()
       .notNull()
       .default(sql`(JSON_ARRAY())`),
+    videoUrl: varchar("video_url", { length: 500 }),
     stock: int("stock").notNull().default(0),
     minStock: int("min_stock").notNull().default(5),
     isActive: boolean("is_active").notNull().default(true),
@@ -216,6 +218,7 @@ export const orderItems = mysqlTable(
     productName: varchar("product_name", { length: 200 }).notNull(),
     productSlug: varchar("product_slug", { length: 220 }).notNull(),
     unitPriceCents: int("unit_price_cents").notNull(),
+    unitCostCents: int("unit_cost_cents").notNull(),
     quantity: int("quantity").notNull().default(1),
   },
   (table) => [

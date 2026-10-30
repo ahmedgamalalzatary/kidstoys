@@ -73,9 +73,18 @@ const productShape = {
   shortDescription: z.string().trim().max(255).optional().nullable(),
   description: z.string().trim().max(5000).optional(),
   priceCents: z.coerce.number().int().min(0, "Price cannot be negative").max(100_000_000),
+  buyPriceCents: z.coerce.number().int().min(0, "Buy price cannot be negative").max(100_000_000),
   compareAtCents: z.coerce.number().int().min(0).max(100_000_000).optional().nullable(),
   categoryId: z.coerce.number().int().positive("Choose a category"),
-  images: z.array(z.string().trim().url("Enter a valid image URL")).max(8).optional(),
+  images: z.never({ error: "Upload image files instead of image URLs" }).optional(),
+  videoUrl: z
+    .string()
+    .trim()
+    .url("Enter a valid video URL")
+    .max(500)
+    .refine((value) => value.startsWith("https://"), "Video URL must use HTTPS")
+    .optional()
+    .nullable(),
   stock: z.coerce.number().int().min(0, "Stock cannot be negative").max(1_000_000),
   minStock: z.coerce.number().int().min(0).max(100_000).optional(),
   isActive: booleanish.optional(),
@@ -88,7 +97,6 @@ const productShape = {
 export const productSchema = z.object({
   ...productShape,
   description: productShape.description.default(""),
-  images: productShape.images.default([]),
   minStock: productShape.minStock.default(5),
   isActive: productShape.isActive.default(true),
   characterIds: productShape.characterIds.default([]),

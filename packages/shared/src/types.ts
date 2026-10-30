@@ -103,11 +103,13 @@ export interface ProductDTO {
   shortDescription: string | null;
   description: string;
   priceCents: number;
+  buyPriceCents?: number;
   compareAtCents: number | null;
   categoryId: number;
   categoryName?: string;
   categorySlug?: string;
   images: string[];
+  videoUrl: string | null;
   stock: number;
   minStock: number;
   isActive: boolean;

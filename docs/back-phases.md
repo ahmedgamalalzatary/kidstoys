@@ -105,7 +105,7 @@ repository, and only repositories touch the database.
 - [x] `PATCH /api/admin/categories/:id` → updates fields; `409` on duplicate name.
 - [x] `DELETE /api/admin/categories/:id` → `409` when products still reference it.
 - [x] `GET /api/admin/products` → list with `q`, `category`, `includeInactive`, `lowStock`, paging.
-- [x] `POST /api/admin/products` → creates with slug generation and image URL list.
+- [x] `POST /api/admin/products` → creates with slug generation and uploaded image files.
 - [x] `PATCH /api/admin/products/:id` → updates fields and stock.
 - [x] `DELETE /api/admin/products/:id` → `409` when the product appears in an order; otherwise deletes.
 - [x] Every endpoint in this phase returns `401` without a session and `403` for a customer.
@@ -161,18 +161,18 @@ repository, and only repositories touch the database.
       range covers it) and by `new` / `bestSeller`.
 - [x] An unknown slug filters to an empty list, never to a 500.
 
-## B8 — Product cost and media (admin)
+## B8 — Product cost and media (admin) ✅
 
-- [ ] `products.buyPriceCents` stores the non-negative unit buy price; it is required when creating
+- [x] `products.buyPriceCents` stores the non-negative unit buy price; it is required when creating
       a product and is never exposed by the public catalog.
-- [ ] `products.videoUrl` stores an optional external `https://` video URL.
-- [ ] `POST` / `PATCH /api/admin/products` accept product photos as uploaded files through
+- [x] `products.videoUrl` stores an optional external `https://` video URL.
+- [x] `POST` / `PATCH /api/admin/products` accept product photos as uploaded files through
       `multipart/form-data`, not client-supplied image URLs. Multiple photos are supported, up to 8.
-- [ ] Uploads accept only JPEG, PNG and WebP images, enforce a file-size limit, and store files
+- [x] Uploads accept only JPEG, PNG and WebP images, enforce a file-size limit, and store files
       outside the source tree. Product responses return same-origin paths for rendering them.
-- [ ] Creating an order snapshots each line's buy price as `order_items.unitCostCents`, so later
+- [x] Creating an order snapshots each line's buy price as `order_items.unitCostCents`, so later
       product cost changes do not rewrite historical profit.
-- [ ] Buy price and uploaded-media rules apply to both product creation and editing.
+- [x] Buy price and uploaded-media rules apply to both product creation and editing.
 
 ## B9 — Customers (admin)
 

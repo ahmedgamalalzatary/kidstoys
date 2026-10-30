@@ -67,9 +67,9 @@ describe("POST /api/admin/products", () => {
       name: "Wooden Train",
       description: "A lovely train",
       priceCents: 1999,
+      buyPriceCents: 1000,
       categoryId: toys.id,
       stock: 12,
-      images: ["https://example.com/train.png"],
     });
 
     expect(response.status).toBe(201);
@@ -77,11 +77,12 @@ describe("POST /api/admin/products", () => {
       name: "Wooden Train",
       slug: "wooden-train",
       priceCents: 1999,
+      buyPriceCents: 1000,
       stock: 12,
       isActive: true,
       minStock: 5,
     });
-    expect(response.body.images).toEqual(["https://example.com/train.png"]);
+    expect(response.body.images).toEqual([]);
   });
 
   it("rejects a product without a category", async () => {
@@ -91,6 +92,7 @@ describe("POST /api/admin/products", () => {
     const response = await agent.post("/api/admin/products").send({
       name: "Wooden Train",
       priceCents: 1999,
+      buyPriceCents: 1000,
       stock: 12,
     });
 
@@ -106,6 +108,7 @@ describe("POST /api/admin/products", () => {
     const response = await agent.post("/api/admin/products").send({
       name: "Wooden Train",
       priceCents: -5,
+      buyPriceCents: 1000,
       categoryId: toys.id,
       stock: 12,
     });
@@ -123,6 +126,7 @@ describe("POST /api/admin/products", () => {
     const response = await agent.post("/api/admin/products").send({
       name: "Wooden Train",
       priceCents: 1999,
+      buyPriceCents: 1000,
       categoryId: toys.id,
       stock: 12,
     });

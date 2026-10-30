@@ -18,9 +18,11 @@ const productColumns = {
   shortDescription: products.shortDescription,
   description: products.description,
   priceCents: products.priceCents,
+  buyPriceCents: products.buyPriceCents,
   compareAtCents: products.compareAtCents,
   categoryId: products.categoryId,
   images: products.images,
+  videoUrl: products.videoUrl,
   stock: products.stock,
   minStock: products.minStock,
   isActive: products.isActive,
@@ -203,9 +205,11 @@ export async function insertProduct(values: {
   shortDescription: string | null;
   description: string;
   priceCents: number;
+  buyPriceCents: number;
   compareAtCents: number | null;
   categoryId: number;
   images: string[];
+  videoUrl: string | null;
   stock: number;
   minStock: number;
   isActive: boolean;
@@ -232,9 +236,11 @@ export async function updateProduct(
     shortDescription: string | null;
     description: string;
     priceCents: number;
+    buyPriceCents: number;
     compareAtCents: number | null;
     categoryId: number;
     images: string[];
+    videoUrl: string | null;
     stock: number;
     minStock: number;
     isActive: boolean;

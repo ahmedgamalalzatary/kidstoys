@@ -41,6 +41,7 @@ export const env = {
   apiPort: Number(process.env.API_PORT ?? 4000),
   apiBaseUrl: process.env.API_BASE_URL ?? process.env.API_URL ?? "http://127.0.0.1:4000",
   corsOrigin: process.env.CORS_ORIGIN ?? "http://localhost:3000",
+  uploadDir: process.env.UPLOAD_DIR ?? path.resolve(process.cwd(), "uploads"),
   adminUsername: process.env.ADMIN_USERNAME ?? "admin",
   adminEmail: process.env.ADMIN_EMAIL ?? "admin@kidstoys.test",
   adminPassword: process.env.ADMIN_PASSWORD ?? "admin",

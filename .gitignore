@@ -23,6 +23,7 @@ pnpm-debug.log*
 
 # test / coverage
 coverage/
+uploads/
 
 # editors & OS
 .vscode/*

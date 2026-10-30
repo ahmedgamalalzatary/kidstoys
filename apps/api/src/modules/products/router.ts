@@ -2,6 +2,7 @@ import { Router } from "express";
 import { adminProductQuerySchema, productPatchSchema, productQuerySchema, productSchema } from "@kidstoys/shared";
 import { requireRole } from "../../shared/middleware/auth";
 import { parseBody, parseId, parseQuery } from "../../shared/validation";
+import { productImageUpload, saveProductImages } from "../../shared/product-uploads";
 import {
   createProduct,
   getProduct,
@@ -53,19 +54,23 @@ adminRouter.get("/products", async (req, res) => {
     sort: query.sort,
     page: query.page,
     pageSize: query.pageSize,
+    includeCost: true,
   });
 
   res.status(200).json(page);
 });
 
-adminRouter.post("/products", async (req, res) => {
+adminRouter.post("/products", productImageUpload, async (req, res) => {
   const input = parseBody(productSchema, req.body);
-  res.status(201).json(await createProduct(input));
+  const images = await saveProductImages((req.files as Express.Multer.File[] | undefined) ?? []);
+  res.status(201).json(await createProduct(input, images));
 });
 
-adminRouter.patch("/products/:id", async (req, res) => {
+adminRouter.patch("/products/:id", productImageUpload, async (req, res) => {
   const input = parseBody(productPatchSchema, req.body);
-  res.status(200).json(await updateProductById(parseId(req.params.id), input));
+  const files = (req.files as Express.Multer.File[] | undefined) ?? [];
+  const images = files.length > 0 ? await saveProductImages(files) : undefined;
+  res.status(200).json(await updateProductById(parseId(req.params.id), input, images));
 });
 
 adminRouter.delete("/products/:id", async (req, res) => {

@@ -64,6 +64,7 @@ describe("characters", () => {
     await admin.agent.post("/api/admin/products").send({
       name: "Batmobile",
       priceCents: 2000,
+      buyPriceCents: 1000,
       categoryId: category.id,
       stock: 2,
       characterIds: [character.body.id],
@@ -159,6 +160,7 @@ describe("age groups", () => {
     await admin.agent.post("/api/admin/products").send({
       name: "Blocks",
       priceCents: 1000,
+      buyPriceCents: 500,
       categoryId: category.id,
       stock: 2,
       ageGroupIds: [group.body.id],

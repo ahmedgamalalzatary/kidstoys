@@ -87,6 +87,7 @@ export async function placeOrder(
         productName: line.productName,
         productSlug: line.productSlug,
         unitPriceCents: line.unitPriceCents,
+        unitCostCents: line.unitCostCents,
         quantity: line.quantity,
       })),
     );

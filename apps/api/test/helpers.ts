@@ -105,6 +105,7 @@ export async function createProduct(options: {
       slug: options.slug ?? slugify(name),
       description: "A lovely toy",
       priceCents: options.priceCents ?? 1000,
+      buyPriceCents: 500,
       categoryId: options.categoryId,
       stock: options.stock ?? 10,
       minStock: options.minStock ?? 5,
@@ -165,6 +166,7 @@ export async function createOrderWithProduct(options: {
     productName: "Wooden Train",
     productSlug: "wooden-train",
     unitPriceCents: 1000,
+    unitCostCents: 500,
     quantity: options.quantity ?? 1,
   });
 

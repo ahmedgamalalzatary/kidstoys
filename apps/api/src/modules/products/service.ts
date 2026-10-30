@@ -19,7 +19,10 @@ import {
 } from "./repository";
 import { assertProductCanBeDeleted, assertStockIsNotNegative } from "./rules";
 
-async function withDimensions(rows: Parameters<typeof toProductDTO>[0][]): Promise<ProductDTO[]> {
+async function withDimensions(
+  rows: Parameters<typeof toProductDTO>[0][],
+  includeCost = false,
+): Promise<ProductDTO[]> {
   const productIds = rows.map((row) => row.id);
   const [characters, ageGroups] = await Promise.all([
     listProductCharacters(productIds),
@@ -34,6 +37,7 @@ async function withDimensions(rows: Parameters<typeof toProductDTO>[0][]): Promi
       ageGroups
         .filter((group) => group.productId === row.id)
         .map(({ productId: _productId, ...group }) => group),
+      includeCost,
     ),
   );
 }
@@ -43,6 +47,7 @@ export async function listCatalogProducts(options: {
   sort: "newest" | "price_asc" | "price_desc" | "name_asc";
   page: number;
   pageSize: number;
+  includeCost?: boolean;
 }): Promise<PaginatedDTO<ProductDTO>> {  const { rows, total } = await listProducts(
     options.filters,
     options.sort,
@@ -51,7 +56,7 @@ export async function listCatalogProducts(options: {
   );
 
   return {
-    items: await withDimensions(rows),
+    items: await withDimensions(rows, options.includeCost),
     page: options.page,
     pageSize: options.pageSize,
     total,
@@ -79,7 +84,7 @@ export async function removeProduct(id: number): Promise<void> {
   await deleteProduct(id);
 }
 
-export async function createProduct(input: ProductInput): Promise<ProductDTO> {
+export async function createProduct(input: ProductInput, images: string[]): Promise<ProductDTO> {
   assertStockIsNotNegative(input.stock);
 
   const slug = await uniqueSlug(input.name, productSlugExists);
@@ -91,9 +96,11 @@ export async function createProduct(input: ProductInput): Promise<ProductDTO> {
     shortDescription: input.shortDescription ?? null,
     description: input.description ?? "",
     priceCents: input.priceCents,
+    buyPriceCents: input.buyPriceCents,
     compareAtCents: input.compareAtCents ?? null,
     categoryId: input.categoryId,
-    images: input.images ?? [],
+    images,
+    videoUrl: input.videoUrl ?? null,
     stock: input.stock,
     minStock: input.minStock ?? 5,
     isActive: input.isActive ?? true,
@@ -103,12 +110,13 @@ export async function createProduct(input: ProductInput): Promise<ProductDTO> {
   await replaceProductCharacters(created.id, input.characterIds ?? []);
   await replaceProductAgeGroups(created.id, input.ageGroupIds ?? []);
 
-  return (await withDimensions([created]))[0]!;
+  return (await withDimensions([created], true))[0]!;
 }
 
 export async function updateProductById(
   id: number,
   input: ProductPatchInput,
+  images?: string[],
 ): Promise<ProductDTO> {
   const existing = await findProductById(id);
   if (!existing) {
@@ -121,9 +129,11 @@ export async function updateProductById(
   if (input.shortDescription !== undefined) updates.shortDescription = input.shortDescription;
   if (input.description !== undefined) updates.description = input.description;
   if (input.priceCents !== undefined) updates.priceCents = input.priceCents;
+  if (input.buyPriceCents !== undefined) updates.buyPriceCents = input.buyPriceCents;
   if (input.compareAtCents !== undefined) updates.compareAtCents = input.compareAtCents;
   if (input.categoryId !== undefined) updates.categoryId = input.categoryId;
-  if (input.images !== undefined) updates.images = input.images;
+  if (images !== undefined) updates.images = images;
+  if (input.videoUrl !== undefined) updates.videoUrl = input.videoUrl;
   if (input.stock !== undefined) updates.stock = input.stock;
   if (input.minStock !== undefined) updates.minStock = input.minStock;
   if (input.isActive !== undefined) updates.isActive = input.isActive;
@@ -141,5 +151,5 @@ export async function updateProductById(
   if (input.ageGroupIds !== undefined) {
     await replaceProductAgeGroups(id, input.ageGroupIds);
   }
-  return (await withDimensions([updated]))[0]!;
+  return (await withDimensions([updated], true))[0]!;
 }

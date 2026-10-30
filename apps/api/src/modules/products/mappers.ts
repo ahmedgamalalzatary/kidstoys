@@ -10,6 +10,7 @@ export function toProductDTO(
   row: ProductRow,
   characters: CharacterRefDTO[] = [],
   ageGroups: AgeGroupRefDTO[] = [],
+  includeCost = false,
 ): ProductDTO {
   return {
     id: row.id,
@@ -19,11 +20,13 @@ export function toProductDTO(
     shortDescription: row.shortDescription,
     description: row.description,
     priceCents: row.priceCents,
+    ...(includeCost ? { buyPriceCents: row.buyPriceCents } : {}),
     compareAtCents: row.compareAtCents,
     categoryId: row.categoryId,
     categoryName: row.categoryName,
     categorySlug: row.categorySlug,
     images: Array.isArray(row.images) ? row.images : [],
+    videoUrl: row.videoUrl,
     stock: row.stock,
     minStock: row.minStock,
     isActive: row.isActive,

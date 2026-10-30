@@ -24,6 +24,7 @@ async function createDimensionProduct(
   const response = await agent.post("/api/admin/products").send({
     name: options.name,
     priceCents: 1000,
+    buyPriceCents: 500,
     categoryId: category.id,
     stock: 5,
     characterIds: options.characterIds ?? [],

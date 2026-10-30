@@ -15,6 +15,13 @@
       "when": 1793346888602,
       "tag": "0001_abnormal_karnak",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1793347819817,
+      "tag": "0002_hot_groot",
+      "breakpoints": true
     }
   ]
 }
