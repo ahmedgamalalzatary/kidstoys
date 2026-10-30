@@ -49,7 +49,7 @@ apps/api/
 │   │   └── middleware/        auth guards, error handler
 │   └── modules/
 │       └── <feature>/
-│           ├── routes.ts      HTTP only: parse input, call the service, respond
+│           ├── router.ts      HTTP only: parse input, call the service, respond
 │           ├── service.ts     business logic and orchestration
 │           ├── repository.ts  database access, one function per query
 │           ├── rules.ts       invariants and guards (throws ApiError)
@@ -61,8 +61,8 @@ apps/api/
     └── <feature>/             mirrors src/modules/<feature>
 ```
 
-Planned modules: `auth`, `categories`, `products`, `cart`, `orders`, `clients`, `suppliers`,
-`purchases`, `overview`, `health`.
+Planned modules: `auth`, `categories`, `characters`, `age-groups`, `products`, `cart`, `orders`,
+`clients`, `overview`, `health`.
 
 Layers never skip: a route may only talk to its own service, a service may only talk to its own
 repository, and only repositories touch the database.
@@ -75,7 +75,7 @@ repository, and only repositories touch the database.
 - [x] `GET /api/health` → `200 { "status": "ok" }`.
 - [x] Error plumbing: `ApiError`, validation errors with per-field messages, 404 + error middleware.
 - [x] Password hashing (bcrypt), JWT session cookie (`kidstoys_session`, httpOnly, lax).
-- [x] Drizzle schema for all nine tables, first migration applied.
+- [x] Initial Drizzle schema and first migration applied.
 
 ## B1 — Authentication ✅
 
@@ -86,15 +86,17 @@ repository, and only repositories touch the database.
 - [x] `PATCH /api/auth/me` → profile fields and password change (current password required).
 - [x] Role guards: `requireAuth`, `requireRole("admin")`.
 
-## B2 — Public catalog
+## B2 — Public catalog ✅
 
-- [ ] `GET /api/categories` → active categories with product counts, ordered by `sortOrder`.
-- [ ] `GET /api/products` → paged list. Query: `q` (name, case-insensitive), `category` (slug),
+- [x] `GET /api/categories` → active categories with product counts, ordered by `sortOrder`.
+- [x] `GET /api/products` → paged list. Query: `q` (name, case-insensitive), `category` (slug),
       `sort` (`newest` | `price_asc` | `price_desc` | `name_asc`), `page`, `pageSize` (max 60).
       Returns `{ items, page, pageSize, total, totalPages }`.
-- [ ] `GET /api/products/:slug` → product detail with category name; `404` for unknown or inactive products.
-- [ ] Inactive products never appear in the public catalog.
-- [ ] Products with `stock = 0` are still listed but flagged as out of stock.
+- [x] `GET /api/products/:slug` → product detail with category name; `404` for unknown or inactive products.
+- [x] Inactive products never appear in the public catalog.
+- [x] Products with `stock = 0` are still listed but flagged as out of stock.
+- [ ] `character`, `ageGroup`, `new` and `bestSeller` filters arrive with B7 — the query schema
+      grows then, not now.
 
 ## B3 — Catalog management (admin)
 
@@ -107,6 +109,8 @@ repository, and only repositories touch the database.
 - [x] `PATCH /api/admin/products/:id` → updates fields and stock.
 - [x] `DELETE /api/admin/products/:id` → `409` when the product appears in an order; otherwise deletes.
 - [x] Every endpoint in this phase returns `401` without a session and `403` for a customer.
+- [ ] The product payload grows in B7 with `characterIds`, `ageGroupIds`, `isNew` and `isBestSeller`,
+      then in B8 with `buyPriceCents`, `videoUrl` and uploaded image files.
 
 ## B4 — Cart
 
@@ -136,44 +140,63 @@ repository, and only repositories touch the database.
 - [ ] Cancelling an order restores the reserved stock.
 - [ ] Marking an order as paid is what counts towards revenue.
 
-## B7 — Customers (admin)
+## B7 — Catalog dimensions: characters, age groups, badges
+
+- [ ] Schema: `characters`, `age_groups`, `product_characters`, `product_age_groups`;
+      `products.isNew` + `products.isBestSeller`; `ageMin` / `ageMax` dropped.
+- [ ] `GET /api/characters` and `GET /api/age-groups` → active dimensions with product counts.
+- [ ] `GET /api/admin/characters` → all characters, including inactive, with product counts.
+- [ ] `POST /api/admin/characters` → creates with a generated unique slug.
+- [ ] `PATCH /api/admin/characters/:id` → updates fields; `409` on duplicate name.
+- [ ] `DELETE /api/admin/characters/:id` → `409` when products still reference it.
+- [ ] `GET /api/admin/age-groups` → all age groups, ordered by start age.
+- [ ] `POST` / `PATCH` / `DELETE /api/admin/age-groups[/:id]` → same contract as characters.
+- [ ] An age group is created with a name and a start age; the end age is optional (open-ended)
+      and may never be smaller than the start age. There are no built-in buckets — the owner
+      defines them.
+- [ ] `POST` / `PATCH /api/admin/products` carry `characterIds`, `ageGroupIds`, `isNew`,
+      `isBestSeller`; a patch replaces the product's characters and age groups wholesale.
+- [ ] `GET /api/products` filters by `character` and `ageGroup` (comma-separated slugs, OR inside a
+      dimension, AND across dimensions), by `age` (a number of years, matching every group whose
+      range covers it) and by `new` / `bestSeller`.
+- [ ] An unknown slug filters to an empty list, never to a 500.
+
+## B8 — Product cost and media (admin)
+
+- [ ] `products.buyPriceCents` stores the non-negative unit buy price; it is required when creating
+      a product and is never exposed by the public catalog.
+- [ ] `products.videoUrl` stores an optional external `https://` video URL.
+- [ ] `POST` / `PATCH /api/admin/products` accept product photos as uploaded files through
+      `multipart/form-data`, not client-supplied image URLs. Multiple photos are supported, up to 8.
+- [ ] Uploads accept only JPEG, PNG and WebP images, enforce a file-size limit, and store files
+      outside the source tree. Product responses return same-origin paths for rendering them.
+- [ ] Creating an order snapshots each line's buy price as `order_items.unitCostCents`, so later
+      product cost changes do not rewrite historical profit.
+- [ ] Buy price and uploaded-media rules apply to both product creation and editing.
+
+## B9 — Customers (admin)
 
 - [ ] `GET /api/admin/clients` → list with order count, total spent and last order date, searchable.
 - [ ] `GET /api/admin/clients/:id` → customer detail with their orders.
 - [ ] Aggregates are computed from the database, never cached in the client.
 
-## B8 — Suppliers (admin)
-
-- [ ] `GET /api/admin/suppliers` → list with the number of purchases per supplier.
-- [ ] `POST /api/admin/suppliers` → creates; `409` on duplicate name.
-- [ ] `PATCH /api/admin/suppliers/:id` → updates.
-- [ ] `DELETE /api/admin/suppliers/:id` → `409` when purchases reference it.
-
-## B9 — Purchases and stock (admin)
-
-- [ ] `GET /api/admin/purchases` → list, optionally filtered by status or supplier.
-- [ ] `GET /api/admin/purchases/:id` → purchase detail with its line items.
-- [ ] `POST /api/admin/purchases` → creates a purchase against a supplier with line items
-      (product, quantity, unit cost); purchase numbers look like `PO-2026-0001`.
-- [ ] `PATCH /api/admin/purchases/:id` → moves the purchase through
-      draft → ordered → received → cancelled.
-- [ ] Marking a purchase **received** increments each product's stock by the received quantity,
-      inside a transaction, and records the total cost.
-- [ ] A purchase that has already been received cannot be received twice.
-
 ## B10 — Overview metrics (admin)
 
-- [ ] `GET /api/admin/overview` → KPIs (revenue collected, orders, pending orders, customers,
-      products, low-stock count, open purchases), recent orders, low-stock products, recent purchases.
-- [ ] Revenue counts only orders with `paymentStatus = "paid"`.
+- [ ] `GET /api/admin/overview` → KPIs (revenue collected, cost of goods sold, gross profit, orders,
+      pending orders, customers, products, low-stock count), recent orders and low-stock products.
+- [ ] Revenue, cost of goods sold and gross profit count only orders with `paymentStatus = "paid"`.
+- [ ] Cost of goods sold uses the order-item buy-price snapshots; gross profit is revenue minus
+      cost of goods sold.
 - [ ] Low stock means `stock <= minStock`.
 
 ## B11 — Seed data
 
 - [ ] `pnpm db:seed` creates the admin account (from `ADMIN_EMAIL` / `ADMIN_PASSWORD`),
-      a set of categories, ~24 products, 2 suppliers and one sample purchase.
+      a set of categories and ~24 products.
+- [ ] The seed creates no age groups and no characters: both are the owner's to define in the ERP,
+      so the seed leaves those dimensions empty rather than inventing buckets.
 - [ ] Seeding is idempotent: running it twice does not duplicate data.
-- [ ] Products carry placeholder image URLs so the storefront is not empty.
+- [ ] Products carry buy prices and locally stored placeholder images so the storefront is not empty.
 
 ## B12 — Hardening and documentation
 
@@ -187,5 +210,6 @@ repository, and only repositories touch the database.
 
 - Every endpoint in the contract is implemented, guarded and tested.
 - The full suite passes against a real MySQL instance.
-- Stock is consistent: orders decrement it, cancelled orders restore it, received purchases add it.
+- Stock is consistent: admins adjust it through product management, orders decrement it, and
+  cancelled orders restore it.
 - No endpoint trusts the client for prices, totals or permissions.

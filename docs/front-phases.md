@@ -40,10 +40,12 @@ Shared rules for the front end:
 
 - [ ] Home page: hero, category tiles, featured and newest products.
 - [ ] Category page (`/category/[slug]`): that category's products plus a category sidebar.
-- [ ] Listing (`/products`): search box, category filter, sort control, pagination — all
-      reflected in the URL query string.
-- [ ] Product detail (`/product/[slug]`): images, price, description, stock badge, quantity
-      picker, add to cart, breadcrumbs.
+- [ ] Listing (`/products`): search box, category filter, character filter, age-group filter (both
+      multi-select), an age picker that filters by the owner's age ranges, "new" and "best seller"
+      filters, sort control, pagination — all reflected in the URL query string.
+- [ ] Product detail (`/product/[slug]`): uploaded images, optional external video, sell price,
+      description, stock badge, quantity picker, add to cart, breadcrumbs, the "new" /
+      "best seller" badge and the characters and age groups the product belongs to.
 - [ ] Out-of-stock products cannot be added to the cart.
 - [ ] Responsive down to 360px; empty states for "no results".
 
@@ -66,13 +68,20 @@ Shared rules for the front end:
 
 - [ ] ERP login page (admin only); a customer session is rejected.
 - [ ] Admin layout: sidebar navigation, top bar with the admin's name and sign out.
-- [ ] Overview page: KPI cards, recent orders, low-stock list, recent purchases.
+- [ ] Overview page: KPI cards, recent orders, and a low-stock list.
 
 ## F5 — ERP catalog management
 
 - [ ] Categories: table with search and product counts, create/edit dialog, delete with guard.
+- [ ] Characters: table with search and product counts, create/edit dialog, delete with guard.
+- [ ] Age groups: table ordered by start age with product counts; create/edit dialog with a name
+      and a start/end age (the end age is optional), delete with guard. No buckets are predefined —
+      the owner creates the ones the shop needs.
 - [ ] Products: table with search, category filter and stock filter; create/edit form with the
-      image URL list; delete with the "appears in an order" guard.
+      name, description, sell price, buy price, manual stock adjustment, multiple image-file
+      uploads, an optional external video URL, the category, a multi-select of characters,
+      a multi-select of age groups and the "new" / "best seller" toggles; delete with the
+      "appears in an order" guard. Buy price is admin-only and never appears in the storefront.
 - [ ] Every mutation shows a success or error toast and refreshes the list.
 
 ## F6 — ERP orders and customers
@@ -80,13 +89,7 @@ Shared rules for the front end:
 - [ ] Orders: list with search and status filter, detail page with status and payment actions.
 - [ ] Customers: list with order count, total spent and last order; detail with their orders.
 
-## F7 — ERP suppliers and purchases
-
-- [ ] Suppliers: table, create/edit dialog, delete guard.
-- [ ] Purchases: list, create with line items, status actions including "mark received"
-      (which is what increases stock).
-
-## F8 — Polish
+## F7 — Polish
 
 - [ ] Responsive pass on both apps (storefront 360px+, ERP 1024px+).
 - [ ] Loading, empty and error states everywhere a list is rendered.
@@ -99,7 +102,7 @@ Shared rules for the front end:
 ## Definition of done for the front end
 
 - A customer can browse, register, add to cart and place a cash-on-delivery order.
-- The owner can run the whole shop from the ERP: categories, products, orders, customers,
-  suppliers and purchases.
+- The owner can run the whole shop from the ERP: categories, products, manual stock levels,
+  orders and customers.
 - Every screen has a loading, empty and error state.
 - The UI never contradicts the API: totals, stock and permissions come from the API.

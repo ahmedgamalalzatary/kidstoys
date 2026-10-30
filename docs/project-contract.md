@@ -18,22 +18,24 @@ KidsToys is a two-part web application for a toy shop:
    add items to a cart, register/login, and place orders with **cash on delivery**. Customers can
    track their own orders and their profile.
 2. **Admin dashboard (private, role = `admin`)** — the owner controls the whole business:
-   categories, products, orders, customers, suppliers and purchases (stock replenishment), with
-   an overview dashboard of key business metrics.
+   categories, products, manual stock levels, orders, and customers, with an overview dashboard
+   of key business metrics.
 
 ### 1.1 Goals
 
 - A customer can go from landing page to placed order in under two minutes.
 - The owner can run the entire business from the dashboard without touching a database client.
-- Stock levels stay truthful: they go up when a purchase is received and down when an order is placed.
+- Stock levels stay truthful: the admin adjusts them manually through product management, and they
+  go down when an order is placed.
 - Every list screen supports search/filter/pagination so the dataset can grow past demo size.
 
 ### 1.2 Non-goals for v1
 
 - Real online payment (deliberately: cash on delivery until a provider is chosen — see 10.3).
-- Product image uploads to cloud storage (images are managed by URL — see 4.3).
+- Cloud storage for product media (v1 stores uploaded image files locally — see 4.4).
 - Emails/SMS notifications (order confirmation is on-screen only).
-- Multi-warehouse inventory, taxes/currency conversion, invoices/PDFs.
+- Multi-warehouse inventory, supplier and purchase management, taxes/currency conversion,
+  invoices/PDFs.
 - Public customer reviews and ratings.
 
 ---
@@ -72,14 +74,17 @@ KidsToys is a two-part web application for a toy shop:
 - Home page: hero, featured categories, featured/new products.
 - Category page: `/category/[slug]` — lists that category's products with a sidebar of all
   categories.
-- Product listing `/products`: search by name, filter by category, sort by newest / price asc /
+- Product listing `/products`: search by name, filter by category, by character and by age group
+  (both multi-select), filter by the "new" and "best seller" badges, sort by newest / price asc /
   price desc, pagination (24 per page). Filters are reflected in the URL query string so a view
   can be shared/bookmarked.
-- Product detail `/product/[slug]`: images, price, description, stock state, quantity selector,
-  add-to-cart, breadcrumbs.
+- Product detail `/product/[slug]`: uploaded images, an optional external video, sell price,
+  description, stock state, quantity selector, add-to-cart, breadcrumbs, the badges and the
+  characters and age groups the product belongs to. Buy price is never exposed publicly.
 - Products with zero stock are shown as "Out of stock" and cannot be added to the cart.
 - **Acceptance:** a search for a term matches product names case-insensitively; an out-of-stock
-  product's add-to-cart control is disabled and the API rejects adding it.
+  product's add-to-cart control is disabled and the API rejects adding it; a product tagged with
+  two age groups shows up under both age filters.
 
 ### 3.3 Cart
 
@@ -98,8 +103,8 @@ KidsToys is a two-part web application for a toy shop:
 - Placing the order, in one server transaction:
   1. re-reads each product's stock and rejects the order if any line exceeds available stock;
   2. creates the order (`status = 'pending'`, `paymentMethod = 'cod'`, `paymentStatus = 'unpaid'`);
-  3. copies product name/price into `order_items` as a snapshot (later price edits never rewrite
-     history);
+  3. copies product name, sell price and buy price into `order_items` as snapshots (later price
+     edits never rewrite history or historical profit);
   4. decrements `products.stock`;
   5. clears the cart.
 - Order number is a human-readable sequential string, e.g. `KT-2026-0001`.
@@ -121,25 +126,34 @@ KidsToys is a two-part web application for a toy shop:
 Layout: persistent left sidebar + top bar with the admin's name and a logout button.
 Sections:
 
-1. **Overview** `/admin` — KPI cards (revenue collected, orders, customers, products, low-stock
-   count, open purchases), a recent-orders table, a low-stock list, and recent purchases.
-   - Revenue counts only orders with `paymentStatus = 'paid'`.
+1. **Overview** `/admin` — KPI cards (revenue collected, cost of goods sold, gross profit, orders,
+   customers, products, low-stock count), a recent-orders table, and a low-stock list.
+   - Revenue, cost of goods sold and gross profit count only orders with `paymentStatus = 'paid'`.
+   - Cost of goods sold uses the buy price snapshotted on each order item; gross profit is revenue
+     minus cost of goods sold.
 2. **Categories** `/admin/categories` — list with search and product counts; create/edit/delete.
    Deleting a category that still has products is blocked with a message.
 3. **Products** `/admin/products` — list with search, category filter and stock filter; create/edit
-   with a product image URL list, price, compare-at price, SKU, stock, and active flag.
-   Deleting a product that appears in an order is blocked (soft-delete via `active = false` is
-   offered instead).
+   with name, description, sell price, buy price, compare-at price, SKU, manually adjusted stock,
+   multiple image-file uploads, an optional external `https://` video URL, and active flag. The
+   form picks the category, any number of characters, any number of age groups, and toggles the
+   "new" and "best seller" badges. Deleting a product that appears in an order is blocked
+   (soft-delete via `active = false` is offered instead). Buy price is admin-only.
 4. **Orders** `/admin/orders` — list with search by order number/customer and status filter;
    order detail where the admin can change status and mark payment as paid/unpaid. Filtering by
    status uses query params.
 5. **Customers** `/admin/clients` — list of customers with order count, total spent, last order
    date; detail page listing their orders.
-6. **Suppliers** `/admin/suppliers` — CRUD: name, contact name, email, phone, address, notes.
-7. **Purchases** `/admin/purchases` — list of purchase orders; create a purchase against a supplier
-   with line items (product, quantity, unit cost); a purchase moves through
-   `draft → ordered → received → cancelled`. Marking a purchase **received** increments the stock
-   of each product by the received quantity and records the total cost.
+6. **Characters** `/admin/characters` — the characters the shop sells (Spider-Man, Batman, …):
+   list with search and product counts, create/edit/delete. Deleting a character that products
+   still use is blocked.
+7. **Age groups** `/admin/age-groups` — the age buckets the owner defines: list with product
+   counts, create/edit/delete. Each group carries a name and a start/end age in years; the end
+   age is optional for an open-ended group, and the list is ordered by start age.
+
+- The three catalog dimensions — **category**, **character** and **age group** — are managed the
+  same way and behave the same way: a product carries exactly one category and any number of
+  characters and age groups.
 
 - **Acceptance:** every admin screen has a working empty state and a working "create" flow; CRUD
   mutations are validated server-side and show a success/error toast; the overview numbers are
@@ -178,10 +192,24 @@ All timestamps are `datetime` in UTC.
 
 ### 4.4 `products`
 `id`, `name`, `slug` (unique), `sku` (varchar, null), `shortDescription` (varchar 255, null),
-`description` (text), `priceCents` (int, not null), `compareAtCents` (int, null),
-`categoryId` (FK → categories, restrict), `images` (JSON array of URL strings, default `[]`),
+`description` (text), `priceCents` (int, not null — sell price),
+`buyPriceCents` (int, not null — unit buy price, admin-only), `compareAtCents` (int, null),
+`categoryId` (FK → categories, restrict), `images` (JSON array of stored file paths, default `[]`),
+`videoUrl` (varchar 500, null — optional external HTTPS video),
 `stock` (int, default 0), `minStock` (int, default 5 — the low-stock threshold),
-`isActive` (boolean, default true), `ageMin` / `ageMax` (int years, null), timestamps.
+`isActive` (boolean, default true),
+`isNew` (boolean, default false — the "new arrival" badge),
+`isBestSeller` (boolean, default false — the "best seller" badge),
+timestamps.
+
+Product photos are uploaded as files, not submitted as URLs. Product create/update accepts
+`multipart/form-data` with up to 8 JPEG, PNG or WebP files, enforces a file-size limit, and stores
+the files outside the source tree. Product responses contain same-origin paths for rendering.
+The external video remains a URL and is not uploaded.
+
+The age of a product is **not** a column: it comes from the age groups it is tagged with
+(§4.9). The old `ageMin` / `ageMax` columns are dropped — a product can sit in several age
+groups at once, so a single min/max pair could not describe it.
 
 ### 4.5 `cart_items`
 `id`, `userId` (FK → users, cascade), `productId` (FK → products, cascade), `quantity` (int),
@@ -199,25 +227,36 @@ All timestamps are `datetime` in UTC.
 ### 4.7 `order_items`
 `id`, `orderId` (FK → orders, cascade), `productId` (FK → products, set null — nullable because the
 product may later be deleted), `productName` (snapshot), `productSlug` (snapshot),
-`unitPriceCents` (snapshot), `quantity`; unique(orderId, productId).
+`unitPriceCents` (sell-price snapshot), `unitCostCents` (buy-price snapshot), `quantity`;
+unique(orderId, productId).
 
-### 4.8 `suppliers`
-`id`, `name` (unique), `contactName`, `email`, `phone`, `address`, `notes` (text, null), timestamps.
+### 4.8 `characters`
+The licensed characters the shop sells (Spider-Man, Batman, Elsa, …). Same shape as
+`categories`: `id`, `name` (unique), `slug` (unique), `description` (text, null),
+`imageUrl` (varchar, null), `sortOrder` (int, default 0), `isActive` (boolean, default true),
+timestamps.
 
-### 4.9 `purchases`
-`id`, `purchaseNumber` (varchar, unique, e.g. `PO-2026-0001`), `supplierId` (FK → suppliers,
-restrict), `status` enum('draft','ordered','received','cancelled') default `draft',
-`orderedAt` (datetime, null), `receivedAt` (datetime, null), `totalCents` (int, default 0),
-`notes` (text, null), timestamps.
+### 4.9 `age_groups`
+The age buckets the catalog is sorted into — **the owner defines them**, there is no fixed set.
+`id`, `name` (unique, e.g. `Toddlers`), `slug` (unique, generated from the name),
+`startAge` (int, years, required), `endAge` (int, years, null — open-ended),
+`isActive` (boolean, default true), timestamps.
 
-### 4.10 `purchase_items`
-`id`, `purchaseId` (FK → purchases, cascade), `productId` (FK → products, restrict),
-`quantity` (int), `unitCostCents` (int), `receivedQuantity` (int, default 0);
-unique(purchaseId, productId).
+`startAge` / `endAge` are what a bucket *means*: they are set once, when the group is created,
+and they are not a per-product value. `endAge` is optional (null = open-ended) and may never be
+smaller than `startAge`. The list is ordered by `startAge`, so the buckets read youngest first.
 
-### 4.11 Order of work for the schema
-`users` → `categories` → `products` → `suppliers` → `purchases` → `purchase_items` →
-`orders` → `order_items` → `cart_items`.
+### 4.10 `product_characters`
+Join table: `productId` (FK → products, cascade), `characterId` (FK → characters, cascade),
+`createdAt`; unique(productId, characterId). A product can carry any number of characters.
+
+### 4.11 `product_age_groups`
+Join table: `productId` (FK → products, cascade), `ageGroupId` (FK → age_groups, cascade),
+`createdAt`; unique(productId, ageGroupId). A product can carry any number of age groups.
+
+### 4.12 Order of work for the schema
+`users` → `categories` → `characters` → `age_groups` → `products` → `product_characters` →
+`product_age_groups` → `orders` → `order_items` → `cart_items`.
 
 ---
 
@@ -303,7 +342,9 @@ Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 not found,
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
 | GET | `/api/categories` | public | active categories |
-| GET | `/api/products` | public | list: `q`, `category`, `sort`, `page` |
+| GET | `/api/characters` | public | active characters |
+| GET | `/api/age-groups` | public | active age groups |
+| GET | `/api/products` | public | list: `q`, `category`, `character`, `ageGroup`, `age`, `new`, `bestSeller`, `sort`, `page` |
 | GET | `/api/products/:slug` | public | product detail |
 | GET | `/api/cart` | customer | current cart with totals |
 | POST | `/api/cart/items` | customer | add product `{ productId, quantity }` |
@@ -317,19 +358,60 @@ Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 not found,
 ### Admin — all require role `admin`
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/api/admin/overview` | KPIs, recent orders, low stock, recent purchases |
+| GET | `/api/admin/overview` | revenue, COGS, gross profit, other KPIs, recent orders, low stock |
 | GET/POST | `/api/admin/categories` | list / create |
 | PATCH/DELETE | `/api/admin/categories/:id` | update / delete |
-| GET/POST | `/api/admin/products` | list / create |
-| PATCH/DELETE | `/api/admin/products/:id` | update / delete |
+| GET/POST | `/api/admin/characters` | list / create |
+| PATCH/DELETE | `/api/admin/characters/:id` | update / delete |
+| GET/POST | `/api/admin/age-groups` | list / create |
+| PATCH/DELETE | `/api/admin/age-groups/:id` | update / delete |
+| GET/POST | `/api/admin/products` | list / create with multipart image-file uploads |
+| PATCH/DELETE | `/api/admin/products/:id` | update / delete, including stock, buy price, video and uploaded images |
 | GET/POST | `/api/admin/orders` | list (filters) / not used |
 | PATCH | `/api/admin/orders/:id` | status / payment updates |
 | GET | `/api/admin/clients` | customers with aggregates |
 | GET | `/api/admin/clients/:id` | customer detail + orders |
-| GET/POST | `/api/admin/suppliers` | list / create |
-| PATCH/DELETE | `/api/admin/suppliers/:id` | update / delete |
-| GET/POST | `/api/admin/purchases` | list / create |
-| GET/PATCH | `/api/admin/purchases/:id` | detail / update status & receive |
+
+### 6.1 Catalog dimensions: category, character, age group
+
+The three ways a product is described beyond its name work the same way:
+
+| | Category | Character | Age group |
+|---|---|---|---|
+| per product | exactly one | any number | any number |
+| stored in | `products.categoryId` | `product_characters` | `product_age_groups` |
+| deleted when in use | blocked (`409`) | blocked (`409`) | blocked (`409`) |
+| public list | `GET /api/categories` | `GET /api/characters` | `GET /api/age-groups` |
+
+Filtering on the product list:
+
+- `character` and `ageGroup` take one or more slugs, comma-separated: `?character=spider-man,bob`.
+  Several values inside one dimension match **any** of them (OR); picking a character *and* an
+  age group narrows the result down (AND across dimensions).
+- `age` takes a number of years and matches every product that sits in an age group whose range
+  covers it — this is how the storefront answers "toys for a 3-year-old".
+- `new=true` and `bestSeller=true` filter on the two badges.
+- An unknown slug filters to an empty list, never to a 500.
+
+### 6.2 Product payload
+
+`POST /api/admin/products` and `PATCH /api/admin/products/:id` carry the dimensions and badges:
+
+| field | type | notes |
+|---|---|---|
+| `categoryId` | int | required on create, one category |
+| `priceCents` | int | required on create, unit sell price |
+| `buyPriceCents` | int | required on create, non-negative unit buy price; admin-only |
+| `videoUrl` | string \| null | optional external `https://` video URL |
+| `images` | file[] | up to 8 uploaded JPEG, PNG or WebP files; not URLs |
+| `characterIds` | int[] | replaces the product's characters wholesale on a patch |
+| `ageGroupIds` | int[] | replaces the product's age groups wholesale on a patch |
+| `isNew` | boolean | the "new arrival" badge |
+| `isBestSeller` | boolean | the "best seller" badge |
+
+The product response echoes `characters` and `ageGroups` as arrays of `{ id, name, slug }`, plus
+the two badge flags, uploaded-image paths and video URL. Only admin product responses include
+`buyPriceCents`; public catalog responses never expose it.
 
 ---
 
@@ -341,7 +423,7 @@ Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 not found,
 - The dashboard is dense and functional: tables, filters, and small stat cards. No hero sections.
 - Every mutating action gives immediate feedback (toast) and the list refreshes.
 - Forms show inline field errors returned by the API, keyed by field name.
-- Empty states exist for every list (cart, orders, products, purchases, customers).
+- Empty states exist for every list (cart, orders, products, customers).
 - Mobile: the storefront is responsive down to 360px; the dashboard is usable at ≥1024px and
   degrades to a scrollable layout below that.
 
@@ -355,9 +437,10 @@ Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 not found,
   generation, validators.
 - API integration tests run against a disposable MySQL schema (test transactions) covering:
   register/login/role guard, cart operations, order placement with stock decrement and
-  insufficient-stock rejection, category delete guard, purchase receipt incrementing stock.
-- Seed script creates the admin user, a handful of categories, ~24 products, 2 suppliers and a
-  sample purchase, so the dashboard is not empty on first run.
+  insufficient-stock rejection, buy-price snapshots, manual stock updates, image-file upload
+  validation, public buy-price exclusion, and the category delete guard.
+- Seed script creates the admin user, a handful of categories, and ~24 products with buy prices
+  and locally stored placeholder images, so the dashboard is not empty on first run.
 
 ---
 
@@ -366,9 +449,10 @@ Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 not found,
 - [ ] `pnpm install`, `pnpm typecheck`, `pnpm lint`, `pnpm test` all pass from a clean checkout.
 - [ ] With a MySQL instance running and migrations applied + seed executed:
       a customer can register, browse, add to cart, check out with COD, and see their order.
-- [ ] The admin can log in and manage categories, products, orders, customers, suppliers and
-      purchases, and see correct overview metrics.
-- [ ] Stock decrements on order and increments on purchase receipt; cancelling an order restores stock.
+- [ ] The admin can log in and manage categories, products, buy prices, uploaded images, external
+      video URLs, manual stock levels, orders, and customers, and see correct overview metrics.
+- [ ] Stock decrements on order, can be adjusted manually by the admin, and is restored when an
+      order is cancelled.
 - [ ] Every admin action is protected server-side (API returns 401/403 for non-admins).
 - [ ] `docs/project-contract.md` stays in sync with the implementation.
 
@@ -420,7 +504,8 @@ component hard-codes a colour. Open questions:
    Next.js app skeleton, env examples, MySQL compose file.
 2. Database schema + migrations + seed.
 3. Auth (register/login/logout/me, JWT cookie, role guard middleware).
-4. Public catalog endpoints + admin CRUD endpoints (categories, products, suppliers).
+4. Public catalog endpoints + admin CRUD endpoints (categories and products, including buy price,
+   manual stock adjustment, image-file uploads and external video URLs).
 5. Storefront pages (home, category, listing, product detail).
 6. Cart + checkout + orders + customer account.
 7. Admin dashboard pages (all sections) + overview metrics.
@@ -430,6 +515,15 @@ component hard-codes a colour. Open questions:
 
 ## 12. Change log
 
+- **v1.3** — products gain an admin-only buy price and optional external video URL; image URLs
+  are replaced by multi-file uploads; order items snapshot buy price for COGS and gross-profit KPIs.
+- **v1.2** — supplier and purchase management removed; admins adjust stock directly through
+  product management.
+- **v1.1** — catalog dimensions: characters and age groups join categories as the three ways a
+  product is described (any number of characters, any number of age groups, exactly one
+  category); the age groups are the owner's own buckets, each with a start/end age, with no
+  built-in set; the "new" and "best seller" badges become real product flags; the product list
+  can be filtered by character, age group and badge; `ageMin` / `ageMax` give way to age groups.
 - **v1 (draft)** — initial contract: full feature set, MySQL + Drizzle, Express API + Next.js web,
   COD payments, credentials auth with client/admin roles, full ERP dashboard. Brand and several
   business rules left open in section 10.
