@@ -1,5 +1,6 @@
-import { and, count, desc, eq, gte, inArray, like, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, like, or, sql } from "drizzle-orm";
 import { cartItems, db, orderItems, orders, products } from "@kidstoys/db";
+import type { OrderStatus } from "@kidstoys/shared";
 
 export type OrderRow = typeof orders.$inferSelect;
 export type OrderItemRow = typeof orderItems.$inferSelect;
@@ -72,6 +73,52 @@ export async function listOrdersForUser(executor: Executor, userId: number): Pro
     .from(orders)
     .where(eq(orders.userId, userId))
     .orderBy(desc(orders.id));
+}
+
+export async function listAdminOrders(options: {
+  q?: string;
+  status: OrderStatus | "all";
+  page: number;
+  pageSize: number;
+}): Promise<{ rows: OrderRow[]; total: number }> {
+  const conditions = [];
+  if (options.q) {
+    const term = `%${options.q}%`;
+    conditions.push(or(like(orders.orderNumber, term), like(orders.customerName, term)));
+  }
+  if (options.status !== "all") {
+    conditions.push(eq(orders.status, options.status));
+  }
+  const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const [rows, totals] = await Promise.all([
+    db
+      .select()
+      .from(orders)
+      .where(where)
+      .orderBy(desc(orders.id))
+      .limit(options.pageSize)
+      .offset((options.page - 1) * options.pageSize),
+    db.select({ total: count() }).from(orders).where(where),
+  ]);
+
+  return { rows, total: totals[0]?.total ?? 0 };
+}
+
+export async function findOrderById(
+  executor: Executor,
+  id: number,
+): Promise<OrderRow | null> {
+  const [row] = await executor.select().from(orders).where(eq(orders.id, id)).limit(1);
+  return row ?? null;
+}
+
+export async function updateOrder(
+  executor: Executor,
+  id: number,
+  values: { status?: OrderStatus; paymentStatus?: "paid" | "unpaid" },
+): Promise<void> {
+  await executor.update(orders).set(values).where(eq(orders.id, id));
 }
 
 export async function listItemsForOrders(

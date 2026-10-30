@@ -132,13 +132,13 @@ repository, and only repositories touch the database.
 - [x] `GET /api/orders/:orderNumber` → order detail with items and status.
 - [x] A customer cannot read another customer's order (`404`).
 
-## B6 — Order management (admin)
+## B6 — Order management (admin) ✅
 
-- [ ] `GET /api/admin/orders` → list with `q` (order number or customer) and `status` filter, paged.
-- [ ] `PATCH /api/admin/orders/:id` → status and payment status changes.
-- [ ] Status transitions follow the contract: pending → confirmed → shipped → delivered, cancel allowed before shipped.
-- [ ] Cancelling an order restores the reserved stock.
-- [ ] Marking an order as paid is what counts towards revenue.
+- [x] `GET /api/admin/orders` → list with `q` (order number or customer) and `status` filter, paged.
+- [x] `PATCH /api/admin/orders/:id` → status and payment status changes.
+- [x] Status transitions follow the contract: pending → confirmed → shipped → delivered, cancel allowed before shipped.
+- [x] Cancelling an order restores the reserved stock.
+- [x] Marking an order as paid is what counts towards revenue.
 
 ## B7 — Catalog dimensions: characters, age groups, badges
 

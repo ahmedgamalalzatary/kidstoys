@@ -1,5 +1,5 @@
 import { ApiError } from "../../shared/errors";
-import { formatOrderNumber } from "@kidstoys/shared";
+import { formatOrderNumber, ORDER_STATUS_TRANSITIONS, type OrderStatus } from "@kidstoys/shared";
 
 /** The cart must hold something before an order can be placed. */
 export function assertCartIsNotEmpty(itemCount: number): void {
@@ -16,4 +16,10 @@ export function assertStockIsAvailable(name: string): void {
 /** Order numbers run per year: KT-2026-0001, KT-2026-0002, ... */
 export function buildOrderNumber(year: number, ordersThisYear: number): string {
   return formatOrderNumber(year, ordersThisYear + 1);
+}
+
+export function assertOrderTransition(current: OrderStatus, next: OrderStatus): void {
+  if (!ORDER_STATUS_TRANSITIONS[current].includes(next)) {
+    throw ApiError.conflict(`An order cannot move from ${current} to ${next}`);
+  }
 }

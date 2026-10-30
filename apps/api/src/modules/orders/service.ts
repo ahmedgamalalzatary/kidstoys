@@ -1,4 +1,4 @@
-import type { OrderDTO } from "@kidstoys/shared";
+import type { OrderDTO, OrderStatus, PaginatedDTO, PaymentStatus } from "@kidstoys/shared";
 import { db } from "@kidstoys/db";
 import { ApiError } from "../../shared/errors";
 import { shippingFor } from "../cart/rules";
@@ -7,15 +7,19 @@ import {
   countOrdersInYear,
   decrementStock,
   deleteCartItems,
+  findOrderById,
   findOrderByNumber,
   insertOrder,
   insertOrderItems,
+  listAdminOrders,
   listCartLines,
   listItemsForOrder,
   listItemsForOrders,
   listOrdersForUser,
+  restoreStock,
+  updateOrder,
 } from "./repository";
-import { assertCartIsNotEmpty, buildOrderNumber } from "./rules";
+import { assertCartIsNotEmpty, assertOrderTransition, buildOrderNumber } from "./rules";
 
 /**
  * Places a cash on delivery order: the stock is taken, the order and its item
@@ -133,4 +137,62 @@ export async function getCustomerOrder(
 
   const items = await listItemsForOrder(db, order.id);
   return toOrderDTO(order, items);
+}
+
+export async function listOrdersForAdmin(options: {
+  q?: string;
+  status: OrderStatus | "all";
+  page: number;
+  pageSize: number;
+}): Promise<PaginatedDTO<OrderDTO>> {
+  const { rows, total } = await listAdminOrders(options);
+  const items = await listItemsForOrders(
+    db,
+    rows.map((row) => row.id),
+  );
+
+  return {
+    items: rows.map((row) =>
+      toOrderDTO(
+        row,
+        items.filter((item) => item.orderId === row.id),
+      ),
+    ),
+    page: options.page,
+    pageSize: options.pageSize,
+    total,
+    totalPages: Math.max(1, Math.ceil(total / options.pageSize)),
+  };
+}
+
+export async function updateOrderByAdmin(
+  id: number,
+  input: { status?: OrderStatus; paymentStatus?: PaymentStatus },
+): Promise<OrderDTO> {
+  const existing = await findOrderById(db, id);
+  if (!existing) {
+    throw ApiError.notFound("That order could not be found");
+  }
+
+  if (input.status !== undefined) {
+    assertOrderTransition(existing.status, input.status);
+  }
+
+  await db.transaction(async (tx) => {
+    if (input.status === "cancelled") {
+      const items = await listItemsForOrder(tx, id);
+      for (const item of items) {
+        if (item.productId !== null) {
+          await restoreStock(tx, item.productId, item.quantity);
+        }
+      }
+    }
+    await updateOrder(tx, id, input);
+  });
+
+  const updated = await findOrderById(db, id);
+  if (!updated) {
+    throw new Error("Order was not updated");
+  }
+  return toOrderDTO(updated, await listItemsForOrder(db, id));
 }

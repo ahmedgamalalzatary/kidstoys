@@ -38,7 +38,7 @@ export const PURCHASE_STATUS_LABELS: Record<PurchaseStatus, string> = {
 export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   pending: ["confirmed", "cancelled"],
   confirmed: ["shipped", "cancelled"],
-  shipped: ["delivered", "cancelled"],
+  shipped: ["delivered"],
   delivered: [],
   cancelled: [],
 };

@@ -7,7 +7,7 @@ import { authRouter } from "./modules/auth";
 import { cartRouter } from "./modules/cart";
 import { categoriesAdminRouter, categoriesPublicRouter } from "./modules/categories";
 import { healthRouter } from "./modules/health";
-import { ordersRouter } from "./modules/orders";
+import { ordersAdminRouter, ordersRouter } from "./modules/orders";
 import { productsAdminRouter, productsPublicRouter } from "./modules/products";
 
 export function createApp() {
@@ -33,6 +33,7 @@ export function createApp() {
   // Dashboard surface
   app.use("/api/admin", categoriesAdminRouter);
   app.use("/api/admin", productsAdminRouter);
+  app.use("/api/admin", ordersAdminRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
