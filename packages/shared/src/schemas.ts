@@ -50,6 +50,23 @@ export const categorySchema = z.object({
   isActive: booleanish.optional(),
 });
 
+export const characterSchema = categorySchema;
+
+const ageGroupBase = z.object({
+  name: z.string().trim().min(1, "Name is required").max(120),
+  startAge: z.coerce.number().int().min(0).max(100),
+  endAge: z.coerce.number().int().min(0).max(120).optional().nullable(),
+  isActive: booleanish.optional(),
+});
+
+export const ageGroupSchema = ageGroupBase.superRefine((value, context) => {
+  if (value.endAge !== null && value.endAge !== undefined && value.endAge < value.startAge) {
+    context.addIssue({ code: "custom", path: ["endAge"], message: "End age must be at least the start age" });
+  }
+});
+
+export const ageGroupPatchSchema = ageGroupBase.partial();
+
 const productShape = {
   name: z.string().trim().min(1, "Name is required").max(200),
   sku: z.string().trim().max(60).optional().nullable(),
@@ -62,8 +79,10 @@ const productShape = {
   stock: z.coerce.number().int().min(0, "Stock cannot be negative").max(1_000_000),
   minStock: z.coerce.number().int().min(0).max(100_000).optional(),
   isActive: booleanish.optional(),
-  ageMin: z.coerce.number().int().min(0).max(21).optional().nullable(),
-  ageMax: z.coerce.number().int().min(0).max(21).optional().nullable(),
+  characterIds: z.array(z.coerce.number().int().positive()).max(100).optional(),
+  ageGroupIds: z.array(z.coerce.number().int().positive()).max(100).optional(),
+  isNew: booleanish.optional(),
+  isBestSeller: booleanish.optional(),
 };
 
 export const productSchema = z.object({
@@ -72,6 +91,10 @@ export const productSchema = z.object({
   images: productShape.images.default([]),
   minStock: productShape.minStock.default(5),
   isActive: productShape.isActive.default(true),
+  characterIds: productShape.characterIds.default([]),
+  ageGroupIds: productShape.ageGroupIds.default([]),
+  isNew: productShape.isNew.default(false),
+  isBestSeller: productShape.isBestSeller.default(false),
 });
 
 /** A patch carries only the fields the admin sends: the create defaults stay out of it. */
@@ -143,6 +166,11 @@ export const purchaseUpdateSchema = z.object({
 export const productQuerySchema = z.object({
   q: z.string().trim().max(120).optional(),
   category: z.string().trim().max(120).optional(),
+  character: z.string().trim().max(500).optional(),
+  ageGroup: z.string().trim().max(500).optional(),
+  age: z.coerce.number().int().min(0).max(120).optional(),
+  new: booleanish.optional(),
+  bestSeller: booleanish.optional(),
   sort: z.enum(["newest", "price_asc", "price_desc", "name_asc"]).optional().default("newest"),
   page: z.coerce.number().int().min(1).optional().default(1),
   pageSize: z.coerce.number().int().min(1).max(60).optional().default(24),

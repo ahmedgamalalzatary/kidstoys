@@ -72,6 +72,29 @@ export interface CategoryDTO {
   productCount?: number;
 }
 
+export type CharacterDTO = CategoryDTO;
+
+export interface AgeGroupDTO {
+  id: number;
+  name: string;
+  slug: string;
+  startAge: number;
+  endAge: number | null;
+  isActive: boolean;
+  productCount?: number;
+}
+
+export interface CharacterRefDTO {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+export interface AgeGroupRefDTO extends CharacterRefDTO {
+  startAge: number;
+  endAge: number | null;
+}
+
 export interface ProductDTO {
   id: number;
   name: string;
@@ -88,8 +111,10 @@ export interface ProductDTO {
   stock: number;
   minStock: number;
   isActive: boolean;
-  ageMin: number | null;
-  ageMax: number | null;
+  isNew: boolean;
+  isBestSeller: boolean;
+  characters: CharacterRefDTO[];
+  ageGroups: AgeGroupRefDTO[];
   createdAt: string;
 }
 

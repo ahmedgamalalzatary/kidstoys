@@ -95,7 +95,7 @@ repository, and only repositories touch the database.
 - [x] `GET /api/products/:slug` → product detail with category name; `404` for unknown or inactive products.
 - [x] Inactive products never appear in the public catalog.
 - [x] Products with `stock = 0` are still listed but flagged as out of stock.
-- [ ] `character`, `ageGroup`, `new` and `bestSeller` filters arrive with B7 — the query schema
+- [x] `character`, `ageGroup`, `new` and `bestSeller` filters arrive with B7 — the query schema
       grows then, not now.
 
 ## B3 — Catalog management (admin)
@@ -109,7 +109,7 @@ repository, and only repositories touch the database.
 - [x] `PATCH /api/admin/products/:id` → updates fields and stock.
 - [x] `DELETE /api/admin/products/:id` → `409` when the product appears in an order; otherwise deletes.
 - [x] Every endpoint in this phase returns `401` without a session and `403` for a customer.
-- [ ] The product payload grows in B7 with `characterIds`, `ageGroupIds`, `isNew` and `isBestSeller`,
+- [x] The product payload grows in B7 with `characterIds`, `ageGroupIds`, `isNew` and `isBestSeller`,
       then in B8 with `buyPriceCents`, `videoUrl` and uploaded image files.
 
 ## B4 — Cart
@@ -140,26 +140,26 @@ repository, and only repositories touch the database.
 - [x] Cancelling an order restores the reserved stock.
 - [x] Marking an order as paid is what counts towards revenue.
 
-## B7 — Catalog dimensions: characters, age groups, badges
+## B7 — Catalog dimensions: characters, age groups, badges ✅
 
-- [ ] Schema: `characters`, `age_groups`, `product_characters`, `product_age_groups`;
+- [x] Schema: `characters`, `age_groups`, `product_characters`, `product_age_groups`;
       `products.isNew` + `products.isBestSeller`; `ageMin` / `ageMax` dropped.
-- [ ] `GET /api/characters` and `GET /api/age-groups` → active dimensions with product counts.
-- [ ] `GET /api/admin/characters` → all characters, including inactive, with product counts.
-- [ ] `POST /api/admin/characters` → creates with a generated unique slug.
-- [ ] `PATCH /api/admin/characters/:id` → updates fields; `409` on duplicate name.
-- [ ] `DELETE /api/admin/characters/:id` → `409` when products still reference it.
-- [ ] `GET /api/admin/age-groups` → all age groups, ordered by start age.
-- [ ] `POST` / `PATCH` / `DELETE /api/admin/age-groups[/:id]` → same contract as characters.
-- [ ] An age group is created with a name and a start age; the end age is optional (open-ended)
+- [x] `GET /api/characters` and `GET /api/age-groups` → active dimensions with product counts.
+- [x] `GET /api/admin/characters` → all characters, including inactive, with product counts.
+- [x] `POST /api/admin/characters` → creates with a generated unique slug.
+- [x] `PATCH /api/admin/characters/:id` → updates fields; `409` on duplicate name.
+- [x] `DELETE /api/admin/characters/:id` → `409` when products still reference it.
+- [x] `GET /api/admin/age-groups` → all age groups, ordered by start age.
+- [x] `POST` / `PATCH` / `DELETE /api/admin/age-groups[/:id]` → same contract as characters.
+- [x] An age group is created with a name and a start age; the end age is optional (open-ended)
       and may never be smaller than the start age. There are no built-in buckets — the owner
       defines them.
-- [ ] `POST` / `PATCH /api/admin/products` carry `characterIds`, `ageGroupIds`, `isNew`,
+- [x] `POST` / `PATCH /api/admin/products` carry `characterIds`, `ageGroupIds`, `isNew`,
       `isBestSeller`; a patch replaces the product's characters and age groups wholesale.
-- [ ] `GET /api/products` filters by `character` and `ageGroup` (comma-separated slugs, OR inside a
+- [x] `GET /api/products` filters by `character` and `ageGroup` (comma-separated slugs, OR inside a
       dimension, AND across dimensions), by `age` (a number of years, matching every group whose
       range covers it) and by `new` / `bestSeller`.
-- [ ] An unknown slug filters to an empty list, never to a 500.
+- [x] An unknown slug filters to an empty list, never to a 500.
 
 ## B8 — Product cost and media (admin)
 

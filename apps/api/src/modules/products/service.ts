@@ -8,12 +8,35 @@ import {
   findProductById,
   findProductBySlug,
   insertProduct,
+  listProductAgeGroups,
+  listProductCharacters,
   listProducts,
   productSlugExists,
+  replaceProductAgeGroups,
+  replaceProductCharacters,
   updateProduct,
   type ProductFilters,
 } from "./repository";
 import { assertProductCanBeDeleted, assertStockIsNotNegative } from "./rules";
+
+async function withDimensions(rows: Parameters<typeof toProductDTO>[0][]): Promise<ProductDTO[]> {
+  const productIds = rows.map((row) => row.id);
+  const [characters, ageGroups] = await Promise.all([
+    listProductCharacters(productIds),
+    listProductAgeGroups(productIds),
+  ]);
+  return rows.map((row) =>
+    toProductDTO(
+      row,
+      characters
+        .filter((character) => character.productId === row.id)
+        .map(({ productId: _productId, ...character }) => character),
+      ageGroups
+        .filter((group) => group.productId === row.id)
+        .map(({ productId: _productId, ...group }) => group),
+    ),
+  );
+}
 
 export async function listCatalogProducts(options: {
   filters: ProductFilters;
@@ -28,7 +51,7 @@ export async function listCatalogProducts(options: {
   );
 
   return {
-    items: rows.map(toProductDTO),
+    items: await withDimensions(rows),
     page: options.page,
     pageSize: options.pageSize,
     total,
@@ -41,7 +64,7 @@ export async function getProduct(slug: string): Promise<ProductDTO> {
   if (!row) {
     throw ApiError.notFound("That product is no longer available");
   }
-  return toProductDTO(row);
+  return (await withDimensions([row]))[0]!;
 }
 
 export async function removeProduct(id: number): Promise<void> {
@@ -74,11 +97,13 @@ export async function createProduct(input: ProductInput): Promise<ProductDTO> {
     stock: input.stock,
     minStock: input.minStock ?? 5,
     isActive: input.isActive ?? true,
-    ageMin: input.ageMin ?? null,
-    ageMax: input.ageMax ?? null,
+    isNew: input.isNew ?? false,
+    isBestSeller: input.isBestSeller ?? false,
   });
+  await replaceProductCharacters(created.id, input.characterIds ?? []);
+  await replaceProductAgeGroups(created.id, input.ageGroupIds ?? []);
 
-  return toProductDTO(created);
+  return (await withDimensions([created]))[0]!;
 }
 
 export async function updateProductById(
@@ -102,13 +127,19 @@ export async function updateProductById(
   if (input.stock !== undefined) updates.stock = input.stock;
   if (input.minStock !== undefined) updates.minStock = input.minStock;
   if (input.isActive !== undefined) updates.isActive = input.isActive;
-  if (input.ageMin !== undefined) updates.ageMin = input.ageMin;
-  if (input.ageMax !== undefined) updates.ageMax = input.ageMax;
+  if (input.isNew !== undefined) updates.isNew = input.isNew;
+  if (input.isBestSeller !== undefined) updates.isBestSeller = input.isBestSeller;
 
   if (updates.stock !== undefined) {
     assertStockIsNotNegative(updates.stock);
   }
 
   const updated = await updateProduct(id, updates);
-  return toProductDTO(updated);
+  if (input.characterIds !== undefined) {
+    await replaceProductCharacters(id, input.characterIds);
+  }
+  if (input.ageGroupIds !== undefined) {
+    await replaceProductAgeGroups(id, input.ageGroupIds);
+  }
+  return (await withDimensions([updated]))[0]!;
 }

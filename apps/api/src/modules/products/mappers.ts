@@ -1,4 +1,4 @@
-import type { ProductDTO } from "@kidstoys/shared";
+import type { AgeGroupRefDTO, CharacterRefDTO, ProductDTO } from "@kidstoys/shared";
 import type { products } from "@kidstoys/db";
 
 export type ProductRow = typeof products.$inferSelect & {
@@ -6,7 +6,11 @@ export type ProductRow = typeof products.$inferSelect & {
   categorySlug: string;
 };
 
-export function toProductDTO(row: ProductRow): ProductDTO {
+export function toProductDTO(
+  row: ProductRow,
+  characters: CharacterRefDTO[] = [],
+  ageGroups: AgeGroupRefDTO[] = [],
+): ProductDTO {
   return {
     id: row.id,
     name: row.name,
@@ -23,8 +27,10 @@ export function toProductDTO(row: ProductRow): ProductDTO {
     stock: row.stock,
     minStock: row.minStock,
     isActive: row.isActive,
-    ageMin: row.ageMin,
-    ageMax: row.ageMax,
+    isNew: row.isNew,
+    isBestSeller: row.isBestSeller,
+    characters,
+    ageGroups,
     createdAt: row.createdAt.toISOString(),
   };
 }

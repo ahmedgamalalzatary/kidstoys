@@ -2,6 +2,8 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import { env } from "@kidstoys/db";
+import { ageGroupsAdminRouter, ageGroupsPublicRouter } from "./modules/age-groups";
+import { charactersAdminRouter, charactersPublicRouter } from "./modules/characters";
 import { errorHandler, notFoundHandler } from "./shared/middleware/error";
 import { authRouter } from "./modules/auth";
 import { cartRouter } from "./modules/cart";
@@ -26,12 +28,16 @@ export function createApp() {
   app.use("/api", healthRouter);
   app.use("/api/auth", authRouter);
   app.use("/api", categoriesPublicRouter);
+  app.use("/api", charactersPublicRouter);
+  app.use("/api", ageGroupsPublicRouter);
   app.use("/api", productsPublicRouter);
   app.use("/api", cartRouter);
   app.use("/api", ordersRouter);
 
   // Dashboard surface
   app.use("/api/admin", categoriesAdminRouter);
+  app.use("/api/admin", charactersAdminRouter);
+  app.use("/api/admin", ageGroupsAdminRouter);
   app.use("/api/admin", productsAdminRouter);
   app.use("/api/admin", ordersAdminRouter);
 

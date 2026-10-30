@@ -8,6 +8,13 @@
       "when": 1793272407965,
       "tag": "0000_odd_venus",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1793346888602,
+      "tag": "0001_abnormal_karnak",
+      "breakpoints": true
     }
   ]
 }

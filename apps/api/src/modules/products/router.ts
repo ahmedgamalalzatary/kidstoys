@@ -17,7 +17,15 @@ publicRouter.get("/products", async (req, res) => {
   const query = parseQuery(productQuerySchema, req.query);
 
   const page = await listCatalogProducts({
-    filters: { q: query.q, category: query.category },
+    filters: {
+      q: query.q,
+      category: query.category,
+      character: query.character,
+      ageGroup: query.ageGroup,
+      age: query.age,
+      new: query.new,
+      bestSeller: query.bestSeller,
+    },
     sort: query.sort,
     page: query.page,
     pageSize: query.pageSize,

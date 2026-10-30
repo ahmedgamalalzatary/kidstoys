@@ -1,5 +1,14 @@
-import { and, asc, count, desc, eq, like, sql, type SQL } from "drizzle-orm";
-import { categories, db, orderItems, products } from "@kidstoys/db";
+import { and, asc, count, desc, eq, exists, gte, inArray, isNull, like, or, sql, type SQL } from "drizzle-orm";
+import {
+  ageGroups,
+  categories,
+  characters,
+  db,
+  orderItems,
+  productAgeGroups,
+  productCharacters,
+  products,
+} from "@kidstoys/db";
 
 const productColumns = {
   id: products.id,
@@ -15,8 +24,8 @@ const productColumns = {
   stock: products.stock,
   minStock: products.minStock,
   isActive: products.isActive,
-  ageMin: products.ageMin,
-  ageMax: products.ageMax,
+  isNew: products.isNew,
+  isBestSeller: products.isBestSeller,
   createdAt: products.createdAt,
   updatedAt: products.updatedAt,
 };
@@ -24,6 +33,11 @@ const productColumns = {
 export interface ProductFilters {
   q?: string;
   category?: string;
+  character?: string;
+  ageGroup?: string;
+  age?: number;
+  new?: boolean;
+  bestSeller?: boolean;
   includeInactive?: boolean;
   lowStock?: boolean;
 }
@@ -40,6 +54,62 @@ function buildFilters(filters: ProductFilters): SQL[] {
   if (filters.category) {
     conditions.push(eq(categories.slug, filters.category));
   }
+  if (filters.character) {
+    const slugs = filters.character.split(",").map((slug) => slug.trim()).filter(Boolean);
+    conditions.push(
+      exists(
+        db
+          .select({ id: productCharacters.productId })
+          .from(productCharacters)
+          .innerJoin(characters, eq(productCharacters.characterId, characters.id))
+          .where(
+            and(
+              eq(productCharacters.productId, products.id),
+              inArray(characters.slug, slugs),
+              eq(characters.isActive, true),
+            ),
+          ),
+      ),
+    );
+  }
+  if (filters.ageGroup) {
+    const slugs = filters.ageGroup.split(",").map((slug) => slug.trim()).filter(Boolean);
+    conditions.push(
+      exists(
+        db
+          .select({ id: productAgeGroups.productId })
+          .from(productAgeGroups)
+          .innerJoin(ageGroups, eq(productAgeGroups.ageGroupId, ageGroups.id))
+          .where(
+            and(
+              eq(productAgeGroups.productId, products.id),
+              inArray(ageGroups.slug, slugs),
+              eq(ageGroups.isActive, true),
+            ),
+          ),
+      ),
+    );
+  }
+  if (filters.age !== undefined) {
+    conditions.push(
+      exists(
+        db
+          .select({ id: productAgeGroups.productId })
+          .from(productAgeGroups)
+          .innerJoin(ageGroups, eq(productAgeGroups.ageGroupId, ageGroups.id))
+          .where(
+            and(
+              eq(productAgeGroups.productId, products.id),
+              eq(ageGroups.isActive, true),
+              sql`${ageGroups.startAge} <= ${filters.age}`,
+              or(isNull(ageGroups.endAge), gte(ageGroups.endAge, filters.age)),
+            ),
+          ),
+      ),
+    );
+  }
+  if (filters.new !== undefined) conditions.push(eq(products.isNew, filters.new));
+  if (filters.bestSeller !== undefined) conditions.push(eq(products.isBestSeller, filters.bestSeller));
   if (filters.lowStock) {
     conditions.push(sql`${products.stock} <= ${products.minStock}`);
   }
@@ -139,8 +209,8 @@ export async function insertProduct(values: {
   stock: number;
   minStock: number;
   isActive: boolean;
-  ageMin: number | null;
-  ageMax: number | null;
+  isNew: boolean;
+  isBestSeller: boolean;
 }) {
   const [row] = await db.insert(products).values(values).$returningId();
   if (!row) {
@@ -168,8 +238,8 @@ export async function updateProduct(
     stock: number;
     minStock: number;
     isActive: boolean;
-    ageMin: number | null;
-    ageMax: number | null;
+    isNew: boolean;
+    isBestSeller: boolean;
   }>,
 ) {
   if (Object.keys(values).length > 0) {
@@ -193,4 +263,50 @@ export async function countOrderItemsForProduct(id: number): Promise<number> {
     .from(orderItems)
     .where(eq(orderItems.productId, id));
   return rows[0]?.total ?? 0;
+}
+
+export async function replaceProductCharacters(productId: number, characterIds: number[]): Promise<void> {
+  await db.delete(productCharacters).where(eq(productCharacters.productId, productId));
+  if (characterIds.length > 0) {
+    await db.insert(productCharacters).values(characterIds.map((characterId) => ({ productId, characterId })));
+  }
+}
+
+export async function replaceProductAgeGroups(productId: number, ageGroupIds: number[]): Promise<void> {
+  await db.delete(productAgeGroups).where(eq(productAgeGroups.productId, productId));
+  if (ageGroupIds.length > 0) {
+    await db.insert(productAgeGroups).values(ageGroupIds.map((ageGroupId) => ({ productId, ageGroupId })));
+  }
+}
+
+export async function listProductCharacters(productIds: number[]) {
+  if (productIds.length === 0) return [];
+  return db
+    .select({
+      productId: productCharacters.productId,
+      id: characters.id,
+      name: characters.name,
+      slug: characters.slug,
+    })
+    .from(productCharacters)
+    .innerJoin(characters, eq(productCharacters.characterId, characters.id))
+    .where(inArray(productCharacters.productId, productIds))
+    .orderBy(asc(characters.sortOrder), asc(characters.name));
+}
+
+export async function listProductAgeGroups(productIds: number[]) {
+  if (productIds.length === 0) return [];
+  return db
+    .select({
+      productId: productAgeGroups.productId,
+      id: ageGroups.id,
+      name: ageGroups.name,
+      slug: ageGroups.slug,
+      startAge: ageGroups.startAge,
+      endAge: ageGroups.endAge,
+    })
+    .from(productAgeGroups)
+    .innerJoin(ageGroups, eq(productAgeGroups.ageGroupId, ageGroups.id))
+    .where(inArray(productAgeGroups.productId, productIds))
+    .orderBy(asc(ageGroups.startAge), asc(ageGroups.name));
 }

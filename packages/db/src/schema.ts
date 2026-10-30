@@ -54,6 +54,41 @@ export const categories = mysqlTable(
   ],
 );
 
+export const characters = mysqlTable(
+  "characters",
+  {
+    id: int("id").primaryKey().autoincrement(),
+    name: varchar("name", { length: 120 }).notNull(),
+    slug: varchar("slug", { length: 140 }).notNull(),
+    description: text("description"),
+    imageUrl: varchar("image_url", { length: 500 }),
+    sortOrder: int("sort_order").notNull().default(0),
+    isActive: boolean("is_active").notNull().default(true),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("characters_name_unique").on(table.name),
+    uniqueIndex("characters_slug_unique").on(table.slug),
+  ],
+);
+
+export const ageGroups = mysqlTable(
+  "age_groups",
+  {
+    id: int("id").primaryKey().autoincrement(),
+    name: varchar("name", { length: 120 }).notNull(),
+    slug: varchar("slug", { length: 140 }).notNull(),
+    startAge: int("start_age").notNull(),
+    endAge: int("end_age"),
+    isActive: boolean("is_active").notNull().default(true),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("age_groups_name_unique").on(table.name),
+    uniqueIndex("age_groups_slug_unique").on(table.slug),
+  ],
+);
+
 export const products = mysqlTable(
   "products",
   {
@@ -75,14 +110,48 @@ export const products = mysqlTable(
     stock: int("stock").notNull().default(0),
     minStock: int("min_stock").notNull().default(5),
     isActive: boolean("is_active").notNull().default(true),
-    ageMin: int("age_min"),
-    ageMax: int("age_max"),
+    isNew: boolean("is_new").notNull().default(false),
+    isBestSeller: boolean("is_best_seller").notNull().default(false),
     ...timestamps,
   },
   (table) => [
     uniqueIndex("products_slug_unique").on(table.slug),
     index("products_category_idx").on(table.categoryId),
     index("products_active_idx").on(table.isActive),
+  ],
+);
+
+export const productCharacters = mysqlTable(
+  "product_characters",
+  {
+    productId: int("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    characterId: int("character_id")
+      .notNull()
+      .references(() => characters.id, { onDelete: "cascade" }),
+    createdAt: datetime("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("product_characters_unique").on(table.productId, table.characterId),
+    index("product_characters_character_idx").on(table.characterId),
+  ],
+);
+
+export const productAgeGroups = mysqlTable(
+  "product_age_groups",
+  {
+    productId: int("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    ageGroupId: int("age_group_id")
+      .notNull()
+      .references(() => ageGroups.id, { onDelete: "cascade" }),
+    createdAt: datetime("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("product_age_groups_unique").on(table.productId, table.ageGroupId),
+    index("product_age_groups_age_group_idx").on(table.ageGroupId),
   ],
 );
 
@@ -216,6 +285,10 @@ export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Category = typeof categories.$inferSelect;
 export type NewCategory = typeof categories.$inferInsert;
+export type Character = typeof characters.$inferSelect;
+export type NewCharacter = typeof characters.$inferInsert;
+export type AgeGroup = typeof ageGroups.$inferSelect;
+export type NewAgeGroup = typeof ageGroups.$inferInsert;
 export type Product = typeof products.$inferSelect;
 export type NewProduct = typeof products.$inferInsert;
 export type CartItem = typeof cartItems.$inferSelect;
