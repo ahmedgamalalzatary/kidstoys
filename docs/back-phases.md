@@ -174,11 +174,11 @@ repository, and only repositories touch the database.
       product cost changes do not rewrite historical profit.
 - [x] Buy price and uploaded-media rules apply to both product creation and editing.
 
-## B9 — Customers (admin)
+## B9 — Customers (admin) ✅
 
-- [ ] `GET /api/admin/clients` → list with order count, total spent and last order date, searchable.
-- [ ] `GET /api/admin/clients/:id` → customer detail with their orders.
-- [ ] Aggregates are computed from the database, never cached in the client.
+- [x] `GET /api/admin/clients` → list with order count, total spent and last order date, searchable.
+- [x] `GET /api/admin/clients/:id` → customer detail with their orders.
+- [x] Aggregates are computed from the database, never cached in the client.
 
 ## B10 — Overview metrics (admin)
 

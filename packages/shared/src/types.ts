@@ -218,6 +218,10 @@ export interface ClientDTO {
   lastOrderAt: string | null;
 }
 
+export interface ClientDetailDTO extends ClientDTO {
+  orders: OrderDTO[];
+}
+
 export interface PaginatedDTO<T> {
   items: T[];
   page: number;

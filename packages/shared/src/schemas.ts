@@ -189,6 +189,10 @@ export const adminProductQuerySchema = productQuerySchema.extend({
   lowStock: booleanish.optional().default(false),
 });
 
+export const adminClientQuerySchema = z.object({
+  q: z.string().trim().max(120).optional(),
+});
+
 export const adminOrderQuerySchema = z.object({
   q: z.string().trim().max(120).optional(),
   status: z

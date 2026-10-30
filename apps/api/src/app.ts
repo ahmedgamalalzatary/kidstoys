@@ -4,6 +4,7 @@ import express from "express";
 import { env } from "@kidstoys/db";
 import { ageGroupsAdminRouter, ageGroupsPublicRouter } from "./modules/age-groups";
 import { charactersAdminRouter, charactersPublicRouter } from "./modules/characters";
+import { clientsAdminRouter } from "./modules/clients";
 import { errorHandler, notFoundHandler } from "./shared/middleware/error";
 import { authRouter } from "./modules/auth";
 import { cartRouter } from "./modules/cart";
@@ -41,6 +42,7 @@ export function createApp() {
   app.use("/api/admin", ageGroupsAdminRouter);
   app.use("/api/admin", productsAdminRouter);
   app.use("/api/admin", ordersAdminRouter);
+  app.use("/api/admin", clientsAdminRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

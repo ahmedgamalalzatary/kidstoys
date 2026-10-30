@@ -1,0 +1,1 @@
+export { clientsAdminRouter } from "./router";
