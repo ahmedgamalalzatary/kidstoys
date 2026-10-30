@@ -16,21 +16,11 @@ export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 export const PAYMENT_METHODS = ["cod"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
-export const PURCHASE_STATUSES = ["draft", "ordered", "received", "cancelled"] as const;
-export type PurchaseStatus = (typeof PURCHASE_STATUSES)[number];
-
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   pending: "Pending",
   confirmed: "Confirmed",
   shipped: "Shipped",
   delivered: "Delivered",
-  cancelled: "Cancelled",
-};
-
-export const PURCHASE_STATUS_LABELS: Record<PurchaseStatus, string> = {
-  draft: "Draft",
-  ordered: "Ordered",
-  received: "Received",
   cancelled: "Cancelled",
 };
 
@@ -40,13 +30,6 @@ export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   confirmed: ["shipped", "cancelled"],
   shipped: ["delivered"],
   delivered: [],
-  cancelled: [],
-};
-
-export const PURCHASE_STATUS_TRANSITIONS: Record<PurchaseStatus, PurchaseStatus[]> = {
-  draft: ["ordered", "cancelled"],
-  ordered: ["received", "cancelled"],
-  received: [],
   cancelled: [],
 };
 
@@ -167,43 +150,6 @@ export interface OrderDTO {
   notes: string | null;
   createdAt: string;
   items: OrderItemDTO[];
-}
-
-export interface SupplierDTO {
-  id: number;
-  name: string;
-  contactName: string | null;
-  email: string | null;
-  phone: string | null;
-  address: string | null;
-  notes: string | null;
-  purchaseCount?: number;
-  createdAt: string;
-}
-
-export interface PurchaseItemDTO {
-  id: number;
-  productId: number;
-  productName: string;
-  productSlug: string;
-  quantity: number;
-  unitCostCents: number;
-  receivedQuantity: number;
-  lineTotalCents: number;
-}
-
-export interface PurchaseDTO {
-  id: number;
-  purchaseNumber: string;
-  supplierId: number;
-  supplierName?: string;
-  status: PurchaseStatus;
-  orderedAt: string | null;
-  receivedAt: string | null;
-  totalCents: number;
-  notes: string | null;
-  createdAt: string;
-  items: PurchaseItemDTO[];
 }
 
 export interface ClientDTO {

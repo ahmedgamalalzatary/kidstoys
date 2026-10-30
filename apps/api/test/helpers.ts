@@ -13,9 +13,6 @@ import {
   productAgeGroups,
   productCharacters,
   products,
-  purchaseItems,
-  purchases,
-  suppliers,
   users,
 } from "@kidstoys/db";
 import { slugify } from "@kidstoys/shared";
@@ -23,8 +20,6 @@ import { slugify } from "@kidstoys/shared";
 const tables = [
   orderItems,
   orders,
-  purchaseItems,
-  purchases,
   cartItems,
   productAgeGroups,
   productCharacters,
@@ -32,7 +27,6 @@ const tables = [
   ageGroups,
   characters,
   categories,
-  suppliers,
   users,
 ];
 

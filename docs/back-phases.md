@@ -198,11 +198,11 @@ repository, and only repositories touch the database.
 - [x] Seeding is idempotent: running it twice does not duplicate data.
 - [x] Products carry buy prices and locally stored placeholder images so the storefront is not empty.
 
-## B12 — Hardening and documentation
+## B12 — Hardening and documentation ✅
 
-- [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test` pass from a clean checkout.
-- [ ] The API README documents every endpoint, the auth flow and the local setup.
-- [ ] The project contract stays in sync with the implemented behaviour.
+- [x] `pnpm lint`, `pnpm typecheck`, `pnpm test` pass from a clean checkout.
+- [x] The API README documents every endpoint, the auth flow and the local setup.
+- [x] The project contract stays in sync with the implemented behaviour.
 
 ---
 

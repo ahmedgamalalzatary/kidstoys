@@ -8,9 +8,7 @@ import {
   loginSchema,
   productQuerySchema,
   productSchema,
-  purchaseSchema,
   registerSchema,
-  supplierSchema,
 } from "../src/schemas";
 
 describe("registerSchema", () => {
@@ -123,30 +121,6 @@ describe("checkoutSchema", () => {
         shippingAddress: "abc",
       }).success,
     ).toBe(false);
-  });
-});
-
-describe("supplierSchema", () => {
-  it("allows an empty email", () => {
-    expect(supplierSchema.safeParse({ name: "Toy Mart", email: "" }).success).toBe(true);
-  });
-
-  it("rejects a malformed email", () => {
-    expect(supplierSchema.safeParse({ name: "Toy Mart", email: "nope" }).success).toBe(false);
-  });
-});
-
-describe("purchaseSchema", () => {
-  it("requires at least one line item", () => {
-    expect(purchaseSchema.safeParse({ supplierId: 1, items: [] }).success).toBe(false);
-  });
-
-  it("accepts a single line item", () => {
-    const result = purchaseSchema.safeParse({
-      supplierId: 1,
-      items: [{ productId: 2, quantity: 10, unitCostCents: 500 }],
-    });
-    expect(result.success).toBe(true);
   });
 });
 

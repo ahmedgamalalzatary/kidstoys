@@ -46,11 +46,6 @@ export function formatOrderNumber(year: number, sequence: number): string {
   return `KT-${year}-${String(sequence).padStart(4, "0")}`;
 }
 
-/** Sequential, human readable purchase number: PO-2026-0001 */
-export function formatPurchaseNumber(year: number, sequence: number): string {
-  return `PO-${year}-${String(sequence).padStart(4, "0")}`;
-}
-
 export function percentOf(part: number, whole: number): number {
   if (whole === 0) return 0;
   return Math.round((part / whole) * 100);

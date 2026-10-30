@@ -137,38 +137,11 @@ export const checkoutSchema = z.object({
   notes: z.string().trim().max(1000).optional().nullable(),
 });
 
-export const supplierSchema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(160),
-  contactName: z.string().trim().max(120).optional().nullable(),
-  email: z.email("Enter a valid email address").max(255).optional().nullable().or(z.literal("")),
-  phone: z.string().trim().max(40).optional().nullable(),
-  address: z.string().trim().max(255).optional().nullable(),
-  notes: z.string().trim().max(2000).optional().nullable(),
-});
-
-export const purchaseSchema = z.object({
-  supplierId: z.coerce.number().int().positive("Choose a supplier"),
-  notes: z.string().trim().max(2000).optional().nullable(),
-  items: z
-    .array(
-      z.object({
-        productId: z.coerce.number().int().positive(),
-        quantity: z.coerce.number().int().min(1, "Quantity must be at least 1").max(1_000_000),
-        unitCostCents: z.coerce.number().int().min(0, "Cost cannot be negative").max(100_000_000),
-      }),
-    )
-    .min(1, "Add at least one product"),
-});
-
 export const orderUpdateSchema = z.object({
   status: z
     .enum(["pending", "confirmed", "shipped", "delivered", "cancelled"])
     .optional(),
   paymentStatus: z.enum(["unpaid", "paid"]).optional(),
-});
-
-export const purchaseUpdateSchema = z.object({
-  status: z.enum(["draft", "ordered", "received", "cancelled"]).optional(),
 });
 
 export const productQuerySchema = z.object({
@@ -211,5 +184,3 @@ export type ProductInput = z.infer<typeof productSchema>;
 export type ProductPatchInput = z.infer<typeof productPatchSchema>;
 export type CartAddInput = z.infer<typeof cartAddSchema>;
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
-export type SupplierInput = z.infer<typeof supplierSchema>;
-export type PurchaseInput = z.infer<typeof purchaseSchema>;

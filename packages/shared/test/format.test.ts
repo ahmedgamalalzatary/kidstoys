@@ -4,7 +4,6 @@ import {
   formatDateTime,
   formatMoney,
   formatOrderNumber,
-  formatPurchaseNumber,
   percentOf,
   slugify,
 } from "../src/format";
@@ -49,13 +48,9 @@ describe("slugify", () => {
   });
 });
 
-describe("order and purchase numbers", () => {
+describe("order numbers", () => {
   it("formats an order number with a padded sequence", () => {
     expect(formatOrderNumber(2026, 7)).toBe("KT-2026-0007");
-  });
-
-  it("formats a purchase number with a padded sequence", () => {
-    expect(formatPurchaseNumber(2026, 3)).toBe("PO-2026-0003");
   });
 });
 

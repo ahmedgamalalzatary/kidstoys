@@ -108,8 +108,8 @@ KidsToys is a two-part web application for a toy shop:
   4. decrements `products.stock`;
   5. clears the cart.
 - Order number is a human-readable sequential string, e.g. `KT-2026-0001`.
-- Order status lifecycle: `pending → confirmed → shipped → delivered`, plus `cancelled` from any
-  non-delivered state. Cancelling restores the reserved stock.
+- Order status lifecycle: `pending → confirmed → shipped → delivered`, plus `cancelled` before
+  `shipped`. Cancelling restores the reserved stock.
 - **Acceptance:** an order that would exceed stock is rejected with a clear message and nothing is
   written; the order confirmation page shows the order number and items; cancelling an order
   restores stock to its previous value.
@@ -142,8 +142,8 @@ Sections:
 4. **Orders** `/admin/orders` — list with search by order number/customer and status filter;
    order detail where the admin can change status and mark payment as paid/unpaid. Filtering by
    status uses query params.
-5. **Customers** `/admin/clients` — list of customers with order count, total spent, last order
-   date; detail page listing their orders.
+5. **Customers** `/admin/clients` — list of customers with order count, paid-order total spent,
+   last order date; detail page listing their orders.
 6. **Characters** `/admin/characters` — the characters the shop sells (Spider-Man, Batman, …):
    list with search and product counts, create/edit/delete. Deleting a character that products
    still use is blocked.
@@ -351,7 +351,7 @@ Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 not found,
 | PATCH | `/api/cart/items/:productId` | customer | set quantity |
 | DELETE | `/api/cart/items/:productId` | customer | remove line |
 | POST | `/api/cart/merge` | customer | merge guest cart |
-| POST | `/api/orders` | customer | place COD order `{ items?, ...address }` |
+| POST | `/api/orders` | customer | place a COD order from the server cart with the delivery address |
 | GET | `/api/orders` | customer | own orders |
 | GET | `/api/orders/:orderNumber` | customer | own order detail |
 

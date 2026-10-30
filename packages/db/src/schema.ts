@@ -227,63 +227,6 @@ export const orderItems = mysqlTable(
   ],
 );
 
-export const suppliers = mysqlTable(
-  "suppliers",
-  {
-    id: int("id").primaryKey().autoincrement(),
-    name: varchar("name", { length: 160 }).notNull(),
-    contactName: varchar("contact_name", { length: 120 }),
-    email: varchar("email", { length: 255 }),
-    phone: varchar("phone", { length: 40 }),
-    address: varchar("address", { length: 255 }),
-    notes: text("notes"),
-    ...timestamps,
-  },
-  (table) => [uniqueIndex("suppliers_name_unique").on(table.name)],
-);
-
-export const purchases = mysqlTable(
-  "purchases",
-  {
-    id: int("id").primaryKey().autoincrement(),
-    purchaseNumber: varchar("purchase_number", { length: 32 }).notNull(),
-    supplierId: int("supplier_id")
-      .notNull()
-      .references(() => suppliers.id, { onDelete: "restrict" }),
-    status: mysqlEnum("status", ["draft", "ordered", "received", "cancelled"])
-      .notNull()
-      .default("draft"),
-    orderedAt: datetime("ordered_at"),
-    receivedAt: datetime("received_at"),
-    totalCents: int("total_cents").notNull().default(0),
-    notes: text("notes"),
-    ...timestamps,
-  },
-  (table) => [
-    uniqueIndex("purchases_purchase_number_unique").on(table.purchaseNumber),
-    index("purchases_supplier_idx").on(table.supplierId),
-  ],
-);
-
-export const purchaseItems = mysqlTable(
-  "purchase_items",
-  {
-    id: int("id").primaryKey().autoincrement(),
-    purchaseId: int("purchase_id")
-      .notNull()
-      .references(() => purchases.id, { onDelete: "cascade" }),
-    productId: int("product_id")
-      .notNull()
-      .references(() => products.id, { onDelete: "restrict" }),
-    quantity: int("quantity").notNull(),
-    unitCostCents: int("unit_cost_cents").notNull(),
-    receivedQuantity: int("received_quantity").notNull().default(0),
-  },
-  (table) => [
-    uniqueIndex("purchase_items_purchase_product_unique").on(table.purchaseId, table.productId),
-  ],
-);
-
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Category = typeof categories.$inferSelect;
@@ -298,6 +241,3 @@ export type CartItem = typeof cartItems.$inferSelect;
 export type Order = typeof orders.$inferSelect;
 export type NewOrder = typeof orders.$inferInsert;
 export type OrderItem = typeof orderItems.$inferSelect;
-export type Supplier = typeof suppliers.$inferSelect;
-export type Purchase = typeof purchases.$inferSelect;
-export type PurchaseItem = typeof purchaseItems.$inferSelect;
