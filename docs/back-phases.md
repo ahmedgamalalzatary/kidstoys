@@ -189,14 +189,14 @@ repository, and only repositories touch the database.
       cost of goods sold.
 - [x] Low stock means `stock <= minStock`.
 
-## B11 — Seed data
+## B11 — Seed data ✅
 
-- [ ] `pnpm db:seed` creates the admin account (from `ADMIN_EMAIL` / `ADMIN_PASSWORD`),
+- [x] `pnpm db:seed` creates the admin account (from `ADMIN_EMAIL` / `ADMIN_PASSWORD`),
       a set of categories and ~24 products.
-- [ ] The seed creates no age groups and no characters: both are the owner's to define in the ERP,
+- [x] The seed creates no age groups and no characters: both are the owner's to define in the ERP,
       so the seed leaves those dimensions empty rather than inventing buckets.
-- [ ] Seeding is idempotent: running it twice does not duplicate data.
-- [ ] Products carry buy prices and locally stored placeholder images so the storefront is not empty.
+- [x] Seeding is idempotent: running it twice does not duplicate data.
+- [x] Products carry buy prices and locally stored placeholder images so the storefront is not empty.
 
 ## B12 — Hardening and documentation
 

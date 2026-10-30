@@ -78,6 +78,7 @@ describe("productSchema", () => {
     name: "Wooden Train",
     description: "A lovely train",
     priceCents: 1999,
+    buyPriceCents: 1000,
     categoryId: 1,
     stock: 10,
   };
@@ -88,8 +89,9 @@ describe("productSchema", () => {
     expect(result.isActive).toBe(true);
   });
 
-  it("defaults images to an empty list", () => {
-    expect(productSchema.parse(valid).images).toEqual([]);
+  it("requires a buy price", () => {
+    const { buyPriceCents: _buyPriceCents, ...withoutBuyPrice } = valid;
+    expect(productSchema.safeParse(withoutBuyPrice).success).toBe(false);
   });
 
   it("rejects a negative price", () => {
