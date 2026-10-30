@@ -180,14 +180,14 @@ repository, and only repositories touch the database.
 - [x] `GET /api/admin/clients/:id` → customer detail with their orders.
 - [x] Aggregates are computed from the database, never cached in the client.
 
-## B10 — Overview metrics (admin)
+## B10 — Overview metrics (admin) ✅
 
-- [ ] `GET /api/admin/overview` → KPIs (revenue collected, cost of goods sold, gross profit, orders,
+- [x] `GET /api/admin/overview` → KPIs (revenue collected, cost of goods sold, gross profit, orders,
       pending orders, customers, products, low-stock count), recent orders and low-stock products.
-- [ ] Revenue, cost of goods sold and gross profit count only orders with `paymentStatus = "paid"`.
-- [ ] Cost of goods sold uses the order-item buy-price snapshots; gross profit is revenue minus
+- [x] Revenue, cost of goods sold and gross profit count only orders with `paymentStatus = "paid"`.
+- [x] Cost of goods sold uses the order-item buy-price snapshots; gross profit is revenue minus
       cost of goods sold.
-- [ ] Low stock means `stock <= minStock`.
+- [x] Low stock means `stock <= minStock`.
 
 ## B11 — Seed data
 

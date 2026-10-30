@@ -11,6 +11,7 @@ import { cartRouter } from "./modules/cart";
 import { categoriesAdminRouter, categoriesPublicRouter } from "./modules/categories";
 import { healthRouter } from "./modules/health";
 import { ordersAdminRouter, ordersRouter } from "./modules/orders";
+import { overviewAdminRouter } from "./modules/overview";
 import { productsAdminRouter, productsPublicRouter } from "./modules/products";
 
 export function createApp() {
@@ -43,6 +44,7 @@ export function createApp() {
   app.use("/api/admin", productsAdminRouter);
   app.use("/api/admin", ordersAdminRouter);
   app.use("/api/admin", clientsAdminRouter);
+  app.use("/api/admin", overviewAdminRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

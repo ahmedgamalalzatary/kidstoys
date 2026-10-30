@@ -232,13 +232,13 @@ export interface PaginatedDTO<T> {
 
 export interface OverviewDTO {
   revenueCents: number;
+  costOfGoodsSoldCents: number;
+  grossProfitCents: number;
   orderCount: number;
   pendingOrderCount: number;
   customerCount: number;
   productCount: number;
   lowStockCount: number;
-  openPurchaseCount: number;
   recentOrders: OrderDTO[];
   lowStockProducts: ProductDTO[];
-  recentPurchases: PurchaseDTO[];
 }
